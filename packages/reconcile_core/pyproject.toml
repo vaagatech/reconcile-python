@@ -4,15 +4,15 @@ build-backend = "hatchling.build"
 
 [project]
 name = "reconcile-core"
-version = "0.1.5"
+version = "0.1.6"
 description = "Declarative snapshot and reconciliation testing for Python"
 license = "MIT"
 requires-python = ">=3.10"
 authors = [{ name = "VaagaTech", email = "info@vaagatech.com" }]
 dependencies = [
-    "reconcile-engine==0.1.5",
-    "reconcile-api-adapters==0.1.5",
-    "reconcile-auth-adapters==0.1.5",
+    "reconcile-engine==0.1.6",
+    "reconcile-api-adapters==0.1.6",
+    "reconcile-auth-adapters==0.1.6",
 ]
 
 [project.urls]

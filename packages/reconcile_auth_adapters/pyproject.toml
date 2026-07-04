@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "reconcile-auth-adapters"
-version = "0.1.5"
+version = "0.1.6"
 description = "Basic, OAuth2, and OpenID auth adapters for Reconcile"
 license = "MIT"
 requires-python = ">=3.10"
