@@ -1,0 +1,26 @@
+[project]
+name = "reconcile-workspace"
+version = "0.1.5"
+description = "Declarative Snapshot and Reconciliation Testing — Python monorepo"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "VaagaTech", email = "info@vaagatech.com" }]
+
+[tool.uv.workspace]
+members = [
+    "packages/reconcile_engine",
+    "packages/reconcile_api_adapters",
+    "packages/reconcile_auth_adapters",
+    "packages/reconcile_core",
+    "demo/shared",
+]
+
+[dependency-groups]
+dev = []
+
+[tool.uv]
+package = false
+
+[project.scripts]
+reconcile-demo = "run_all:main"

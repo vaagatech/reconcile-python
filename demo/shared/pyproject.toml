@@ -1,0 +1,18 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "reconcile-demo-shared"
+version = "0.1.5"
+description = "Shared demo utilities for Reconcile Python demos"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "VaagaTech", email = "info@vaagatech.com" }]
+dependencies = [
+    "reconcile-core==0.1.5",
+    "graphql-core>=3.2.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["reconcile"]
