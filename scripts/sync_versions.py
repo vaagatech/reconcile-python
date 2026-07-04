@@ -15,6 +15,13 @@ PACKAGES = [
     ROOT / "demo" / "shared",
 ]
 ROOT_PYPROJECT = ROOT / "pyproject.toml"
+INTERNAL_PACKAGE_NAMES = (
+    "reconcile-engine",
+    "reconcile-api-adapters",
+    "reconcile-auth-adapters",
+    "reconcile-core",
+    "reconcile-demo-shared",
+)
 
 
 def _read_version(path: Path) -> str:
@@ -23,6 +30,16 @@ def _read_version(path: Path) -> str:
     if not match:
         raise ValueError(f"version not found in {path}")
     return match.group(1)
+
+
+def _sync_internal_dependency_pins(text: str, version: str) -> str:
+    for package_name in INTERNAL_PACKAGE_NAMES:
+        text = re.sub(
+            rf'"{re.escape(package_name)}==[^"]+"',
+            f'"{package_name}=={version}"',
+            text,
+        )
+    return text
 
 
 def _write_version(path: Path, version: str) -> None:
@@ -34,6 +51,8 @@ def _write_version(path: Path, version: str) -> None:
         count=1,
         flags=re.MULTILINE,
     )
+    if path != ROOT_PYPROJECT:
+        updated = _sync_internal_dependency_pins(updated, version)
     path.write_text(updated, encoding="utf-8")
 
 
