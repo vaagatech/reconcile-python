@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "reconcile-demo-shared"
-version = "0.1.6"
+version = "0.1.7"
 description = "Shared demo utilities for Reconcile Python demos"
 license = "MIT"
 requires-python = ">=3.10"
 authors = [{ name = "VaagaTech", email = "info@vaagatech.com" }]
 dependencies = [
-    "reconcile-core==0.1.6",
+    "reconcile-core==0.1.7",
     "graphql-core>=3.2.0",
 ]
 
