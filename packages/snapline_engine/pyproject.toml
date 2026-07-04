@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "snapline-engine"
-version = "0.1.9"
+version = "0.1.10"
 description = "Deep JSON reconciliation engine for Snapline"
 license = "MIT"
 requires-python = ">=3.10"
