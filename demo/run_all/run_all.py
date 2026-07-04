@@ -6,8 +6,8 @@ import sys
 import time
 from pathlib import Path
 
-from reconcile.core import write_test_report
-from reconcile.demo_shared import (
+from snapline.core import write_test_report
+from snapline.demo_shared import (
     close_demo_database,
     create_demo_database,
     create_mock_server,
@@ -45,12 +45,12 @@ def _load_scenario(scenario_id: str):
 
 async def main() -> int:
     print("═══════════════════════════════════════════════════════")
-    print("  reconcile-engine — Full Integration Demo (Python)")
+    print("  Snapline — Full Integration Demo (Python)")
     print("═══════════════════════════════════════════════════════")
     print("  Projects: 15 scenario workspaces under python/demo/scenarios/")
     print("  Modes: API↔file · DB↔DB · API↔DB · DB↔API")
     print("  Protocols: REST · GraphQL · SOAP · SQLite · OAuth2")
-    print("  Reconcile: ignoreFields · transformations · dataMapping")
+    print("  Pipeline: ignoreFields · transformations · dataMapping")
     print("  Reports: json · html · text (via REPORT_FORMAT env or CLI flags)")
     print("  Built by VaagaTech — https://www.vaagatech.com")
     print("═══════════════════════════════════════════════════════")
@@ -62,7 +62,7 @@ async def main() -> int:
     report_config = resolve_report_config()
     started_at = time.time() * 1000
 
-    from reconcile.demo_shared.types import ScenarioContext
+    from snapline.demo_shared.types import ScenarioContext
 
     context = ScenarioContext(base_url=server_handle.base_url, database=database)
 

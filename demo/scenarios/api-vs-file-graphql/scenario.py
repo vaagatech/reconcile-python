@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from reconcile.demo_shared import (
+from snapline.demo_shared import (
     create_demo_auth,
     date_field_transforms,
     fixtures_dir,
@@ -11,7 +11,7 @@ from reconcile.demo_shared import (
     role_tier_only_transforms,
     run_api_fixture_cases,
 )
-from reconcile.demo_shared.types import ScenarioContext
+from snapline.demo_shared.types import ScenarioContext
 
 
 class Scenario:

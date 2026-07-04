@@ -1,4 +1,4 @@
-# Reconcile (Python)
+# Snapline (Python)
 
 Declarative Snapshot and Reconciliation Testing for Python.
 
@@ -6,10 +6,10 @@ Declarative Snapshot and Reconciliation Testing for Python.
 
 ```bash
 cd python
-pip install -e packages/reconcile_engine
-pip install -e packages/reconcile_api_adapters
-pip install -e packages/reconcile_auth_adapters
-pip install -e packages/reconcile_core
+pip install -e packages/snapline_engine
+pip install -e packages/snapline_api_adapters
+pip install -e packages/snapline_auth_adapters
+pip install -e packages/snapline_core
 pip install -e demo/shared
 ```
 
@@ -37,17 +37,17 @@ REPORT_FORMAT=html REPORT_OUTPUT=reports/demo.html python demo/run_all/run_all.p
 
 | Pip package | Python import |
 |---|---|
-| `reconcile-engine` | `reconcile.engine` |
-| `reconcile-api-adapters` | `reconcile.api_adapters` |
-| `reconcile-auth-adapters` | `reconcile.auth_adapters` |
-| `reconcile-core` | `reconcile.core` |
-| `reconcile-demo-shared` | `reconcile.demo_shared` |
+| `snapline-engine` | `snapline.engine` |
+| `snapline-api-adapters` | `snapline.api_adapters` |
+| `snapline-auth-adapters` | `snapline.auth_adapters` |
+| `snapline-core` | `snapline.core` |
+| `snapline-demo-shared` | `snapline.demo_shared` |
 
 ## Quick start
 
 ```python
 import asyncio
-from reconcile.core import auth, test_suite
+from snapline.core import auth, test_suite
 
 async def main():
     result = await test_suite("My API test", {
@@ -71,7 +71,7 @@ asyncio.run(main())
 
 ## Feature parity
 
-- Reconcile pipeline: `ignoreFields` → `transformations` → `dataMapping` → deep compare
+- Snapline pipeline: `ignoreFields` → `transformations` → `dataMapping` → deep compare
 - Test modes: API↔file, DB↔DB, API↔DB, DB↔API in one `test_suite`
 - Protocols: REST, GraphQL, SOAP
 - Auth: Basic, OAuth2 client credentials, OpenID (token/idToken/assertion)

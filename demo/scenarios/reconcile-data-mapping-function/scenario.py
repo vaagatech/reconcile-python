@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from reconcile.core import test_suite
-from reconcile.demo_shared import (
+from snapline.core import test_suite
+from snapline.demo_shared import (
     api_status_mapping,
     DEMO_EMAIL,
     fixtures_dir,
@@ -9,18 +9,18 @@ from reconcile.demo_shared import (
     status_mapping_function,
     warehouse_plan_mapping,
 )
-from reconcile.demo_shared.types import ScenarioContext
+from snapline.demo_shared.types import ScenarioContext
 
 
 class Scenario:
-    name = "Reconcile: dataMapping (fixture cases + DB function mapper)"
+    name = "Snapline: dataMapping (fixture cases + DB function mapper)"
     needs_server = False
     needs_database = True
 
     async def run(self, context: ScenarioContext) -> dict:
         fixture_result = await run_reconcile_fixture_cases(
             {
-                "suiteName": "Reconcile: dataMapping fixture cases (pass + expected failures)",
+                "suiteName": "Snapline: dataMapping fixture cases (pass + expected failures)",
                 "fixturesRoot": str(fixtures_dir(__file__)),
                 "presets": {
                     "dataMapping": {
@@ -33,7 +33,7 @@ class Scenario:
         )
 
         db_result = await test_suite(
-            "Reconcile: dataMapping (DB function mapper on warehouse)",
+            "Snapline: dataMapping (DB function mapper on warehouse)",
             {
                 "dbComparison": {
                     "sourceDb": context.database.source_db,

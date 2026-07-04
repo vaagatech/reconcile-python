@@ -8,19 +8,19 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PACKAGES = [
-    ROOT / "packages" / "reconcile_engine",
-    ROOT / "packages" / "reconcile_api_adapters",
-    ROOT / "packages" / "reconcile_auth_adapters",
-    ROOT / "packages" / "reconcile_core",
+    ROOT / "packages" / "snapline_engine",
+    ROOT / "packages" / "snapline_api_adapters",
+    ROOT / "packages" / "snapline_auth_adapters",
+    ROOT / "packages" / "snapline_core",
     ROOT / "demo" / "shared",
 ]
 ROOT_PYPROJECT = ROOT / "pyproject.toml"
 INTERNAL_PACKAGE_NAMES = (
-    "reconcile-engine",
-    "reconcile-api-adapters",
-    "reconcile-auth-adapters",
-    "reconcile-core",
-    "reconcile-demo-shared",
+    "snapline-engine",
+    "snapline-api-adapters",
+    "snapline-auth-adapters",
+    "snapline-core",
+    "snapline-demo-shared",
 )
 
 

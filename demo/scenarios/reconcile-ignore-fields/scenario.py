@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from reconcile.core import api, test_suite
-from reconcile.demo_shared import fixtures_dir
-from reconcile.demo_shared.types import ScenarioContext
+from snapline.core import api, test_suite
+from snapline.demo_shared import fixtures_dir
+from snapline.demo_shared.types import ScenarioContext
 
 
 class Scenario:
-    name = "Reconcile: ignoreFields (nested paths)"
+    name = "Snapline: ignoreFields (nested paths)"
     needs_server = True
     needs_database = False
 

@@ -1,15 +1,15 @@
 # Publish library packages to PyPI on semver tags (v1.2.3).
 #
-# Trusted publishing (recommended): add a publisher on EACH PyPI project
-# (reconcile-engine, reconcile-auth-adapters, reconcile-api-adapters, reconcile-core):
-#   Owner:        vaagatech
-#   Repository:   reconcile-python
-#   Workflow:     publish-pypi.yml
-#   Environment:  pypi
+# Requires repository secret PYPI_API_TOKEN.
+# PyPI project names must match pyproject.toml exactly (hyphens, not underscores):
+#   snapline-engine
+#   snapline-auth-adapters
+#   snapline-api-adapters
+#   snapline-core
 #
-# Also create a GitHub repository environment named "pypi" under Settings → Environments.
-#
-# Alternative: set repository secret PYPI_API_TOKEN (account or per-project token).
+# If a trusted publisher created a misnamed project (e.g. snapline_engine),
+# delete it on PyPI before publishing. See:
+# https://docs.pypi.org/trusted-publishers/troubleshooting/
 
 name: Publish to PyPI
 
@@ -39,27 +39,30 @@ jobs:
     name: Publish ${{ matrix.package_name }}
     needs: validate-tag
     runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/p/${{ matrix.package_name }}
-    permissions:
-      id-token: write
-      contents: read
     strategy:
       max-parallel: 1
       matrix:
         include:
-          - package_dir: packages/reconcile_engine
-            package_name: reconcile-engine
-          - package_dir: packages/reconcile_auth_adapters
-            package_name: reconcile-auth-adapters
-          - package_dir: packages/reconcile_api_adapters
-            package_name: reconcile-api-adapters
-          - package_dir: packages/reconcile_core
-            package_name: reconcile-core
+          - package_dir: packages/snapline_engine
+            package_name: snapline-engine
+          - package_dir: packages/snapline_auth_adapters
+            package_name: snapline-auth-adapters
+          - package_dir: packages/snapline_api_adapters
+            package_name: snapline-api-adapters
+          - package_dir: packages/snapline_core
+            package_name: snapline-core
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Verify PyPI API token is configured
+        env:
+          PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          if [ -z "$PYPI_API_TOKEN" ]; then
+            echo "::error::Repository secret PYPI_API_TOKEN is not set."
+            exit 1
+          fi
 
       - name: Verify package version matches tag
         env:

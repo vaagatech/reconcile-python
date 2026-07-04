@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from reconcile.core import test_suite
-from reconcile.demo_shared import DEMO_EMAIL, date_transform
-from reconcile.demo_shared.types import ScenarioContext
+from snapline.core import test_suite
+from snapline.demo_shared import DEMO_EMAIL, date_transform
+from snapline.demo_shared.types import ScenarioContext
 
 
 class Scenario:
-    name = "Reconcile: transformations (DB vs DB + SQLite)"
+    name = "Snapline: transformations (DB vs DB + SQLite)"
     needs_server = False
     needs_database = True
 

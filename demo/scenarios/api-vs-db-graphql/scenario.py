@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from reconcile.core import api, test_suite
-from reconcile.demo_shared import (
+from snapline.core import api, test_suite
+from snapline.demo_shared import (
     api_plan_mapping,
     api_status_mapping,
     app_customer_join_query,
@@ -9,7 +9,7 @@ from reconcile.demo_shared import (
     DEMO_EMAIL,
     fixtures_dir,
 )
-from reconcile.demo_shared.types import ScenarioContext
+from snapline.demo_shared.types import ScenarioContext
 
 
 class Scenario:

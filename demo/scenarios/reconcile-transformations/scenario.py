@@ -1,17 +1,17 @@
 from __future__ import annotations
 
-from reconcile.demo_shared import (
+from snapline.demo_shared import (
     date_field_transforms,
     enrichment_transforms,
     fixtures_dir,
     role_tier_only_transforms,
     run_reconcile_fixture_cases,
 )
-from reconcile.demo_shared.types import ScenarioContext
+from snapline.demo_shared.types import ScenarioContext
 
 
 class Scenario:
-    name = "Reconcile: transformations (fixture cases: pass + expected failures)"
+    name = "Snapline: transformations (fixture cases: pass + expected failures)"
     needs_server = False
     needs_database = False
 

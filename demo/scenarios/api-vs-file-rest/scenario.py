@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from reconcile.core import test_suite
-from reconcile.demo_shared import create_demo_auth, date_transform, fixtures_dir
-from reconcile.demo_shared.types import ScenarioContext
+from snapline.core import test_suite
+from snapline.demo_shared import create_demo_auth, date_transform, fixtures_dir
+from snapline.demo_shared.types import ScenarioContext
 
 
 class Scenario:

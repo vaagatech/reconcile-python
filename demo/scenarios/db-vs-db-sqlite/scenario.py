@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from reconcile.core import test_suite
-from reconcile.demo_shared import (
+from snapline.core import test_suite
+from snapline.demo_shared import (
     DEMO_EMAIL,
     status_mapping_lookup,
     warehouse_customer_join_query,
     warehouse_order_join_query,
     warehouse_order_status_mapping,
 )
-from reconcile.demo_shared.types import ScenarioContext
+from snapline.demo_shared.types import ScenarioContext
 
 
 class Scenario:
