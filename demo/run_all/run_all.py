@@ -13,28 +13,18 @@ from snapline.demo_shared import (
     create_mock_server,
     resolve_report_config,
 )
+from snapline.demo_shared.types import ScenarioContext
 
-SCENARIO_IDS = [
-    "reconcile-ignore-fields",
-    "reconcile-transformations",
-    "db-vs-db-sqlite",
-    "reconcile-data-mapping-function",
-    "db-comparison-transformations",
-    "reconcile-combined-options",
-    "api-vs-file-rest",
-    "api-vs-file-graphql",
-    "api-vs-file-soap",
-    "api-vs-db-rest",
-    "api-vs-db-graphql",
-    "api-vs-db-soap",
-    "db-vs-api-rest",
-    "db-vs-api-graphql",
-    "db-vs-api-soap",
-]
+SCRIPTS_DIR = Path(__file__).resolve().parent.parent / "scripts"
+sys.path.insert(0, str(SCRIPTS_DIR))
+
+from scenario_registry import SCENARIO_ORDER, validate_scenario_registry
+
+SCENARIOS_DIR = Path(__file__).resolve().parent.parent / "scenarios"
 
 
 def _load_scenario(scenario_id: str):
-    scenario_path = Path(__file__).resolve().parent.parent / "scenarios" / scenario_id / "scenario.py"
+    scenario_path = SCENARIOS_DIR / scenario_id / "scenario.py"
     spec = importlib.util.spec_from_file_location(f"scenario_{scenario_id}", scenario_path)
     if spec is None or spec.loader is None:
         raise ImportError(f"Unable to load scenario: {scenario_id}")
@@ -44,15 +34,13 @@ def _load_scenario(scenario_id: str):
 
 
 async def main() -> int:
+    validate_scenario_registry(SCENARIOS_DIR)
+
     print("═══════════════════════════════════════════════════════")
     print("  Snapline — Full Integration Demo (Python)")
     print("═══════════════════════════════════════════════════════")
-    print("  Projects: 15 scenario workspaces under python/demo/scenarios/")
-    print("  Modes: API↔file · DB↔DB · API↔DB · DB↔API")
-    print("  Protocols: REST · GraphQL · SOAP · SQLite · OAuth2")
-    print("  Pipeline: ignoreFields · transformations · dataMapping")
-    print("  Reports: json · html · text (via REPORT_FORMAT env or CLI flags)")
-    print("  Built by VaagaTech — https://www.vaagatech.com")
+    print(f"  {len(SCENARIO_ORDER)} scenarios · uv run demo-list to browse")
+    print("  uv run demo-run <id> to run one scenario from root")
     print("═══════════════════════════════════════════════════════")
 
     server_handle = create_mock_server()
@@ -62,13 +50,11 @@ async def main() -> int:
     report_config = resolve_report_config()
     started_at = time.time() * 1000
 
-    from snapline.demo_shared.types import ScenarioContext
-
     context = ScenarioContext(base_url=server_handle.base_url, database=database)
 
     try:
         results = []
-        for scenario_id in SCENARIO_IDS:
+        for scenario_id in SCENARIO_ORDER:
             scenario = _load_scenario(scenario_id)
             results.append(await scenario.run(context))
 
@@ -93,7 +79,6 @@ async def main() -> int:
                 },
             )
             print(f"\nReport written to {report_path}")
-            print("Upload this artifact to your CI dashboard or reporting system.")
 
         return 1 if failed > 0 else 0
     finally:

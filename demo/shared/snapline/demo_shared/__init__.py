@@ -19,6 +19,7 @@ from .constants import (
     status_mapping_lookup,
     warehouse_customer_join_query,
     warehouse_order_join_query,
+    warehouse_order_by_id_query,
     warehouse_order_status_mapping,
     warehouse_plan_mapping,
 )
@@ -66,6 +67,7 @@ __all__ = [
     "status_mapping_lookup",
     "warehouse_customer_join_query",
     "warehouse_order_join_query",
+    "warehouse_order_by_id_query",
     "warehouse_order_status_mapping",
     "warehouse_plan_mapping",
 ]

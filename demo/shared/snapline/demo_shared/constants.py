@@ -149,3 +149,14 @@ warehouse_order_join_query = """
   FROM orders o
   WHERE o.email = :email
 """
+
+warehouse_order_by_id_query = """
+  SELECT
+    order_id AS orderId,
+    email,
+    status,
+    amount AS total,
+    shipped_at AS shippedAt
+  FROM orders
+  WHERE order_id = :orderId
+"""

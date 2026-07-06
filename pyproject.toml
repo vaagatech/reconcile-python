@@ -23,4 +23,10 @@ dev = []
 package = false
 
 [project.scripts]
-snapline-demo = "run_all:main"
+snapline-demo = "run_demo:main"
+
+[tool.uv.scripts]
+demo = "python demo/run_all/run_all.py"
+demo-list = "python demo/scripts/run_scenario.py --list"
+demo-run = "python demo/scripts/run_scenario.py"
+demo-all = "python demo/run_all/run_all.py"

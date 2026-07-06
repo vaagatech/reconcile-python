@@ -29,6 +29,24 @@ def _resolve_preset(value: Any, presets: dict[str, Any] | None) -> Any:
     return None
 
 
+def _resolve_snapline_field(
+    field: str,
+    meta: dict[str, Any],
+    defaults: dict[str, Any],
+    presets: dict[str, Any],
+) -> Any:
+    preset_map = presets.get(field)
+    for candidate in (meta.get(field), defaults.get(field)):
+        if candidate is None:
+            continue
+        resolved = _resolve_preset(candidate, preset_map)
+        if resolved is not None:
+            return resolved
+        if not isinstance(candidate, str):
+            return candidate
+    return None
+
+
 def _discover_case_ids(cases_root: Path) -> list[str]:
     return sorted(path.name for path in cases_root.iterdir() if path.is_dir())
 
@@ -171,16 +189,8 @@ async def run_api_fixture_cases(options: dict[str, Any]) -> dict[str, Any]:
 
         reconcile_options = {
             "ignoreFields": meta.get("ignoreFields") or defaults.get("ignoreFields"),
-            "transformations": (
-                _resolve_preset(meta.get("transformations"), presets.get("transformations"))
-                or meta.get("transformations")
-                or defaults.get("transformations")
-            ),
-            "dataMapping": (
-                _resolve_preset(meta.get("dataMapping"), presets.get("dataMapping"))
-                or meta.get("dataMapping")
-                or defaults.get("dataMapping")
-            ),
+            "transformations": _resolve_snapline_field("transformations", meta, defaults, presets),
+            "dataMapping": _resolve_snapline_field("dataMapping", meta, defaults, presets),
         }
 
         assertion = assert_against_file(
@@ -237,6 +247,7 @@ async def run_api_fixture_cases(options: dict[str, Any]) -> dict[str, Any]:
 async def run_reconcile_fixture_cases(options: dict[str, Any]) -> dict[str, Any]:
     suite_name = options["suiteName"]
     fixtures_root = Path(options["fixturesRoot"])
+    defaults = options.get("defaults", {})
     presets = options.get("presets", {})
     case_ids = options.get("caseIds")
 
@@ -252,15 +263,9 @@ async def run_reconcile_fixture_cases(options: dict[str, Any]) -> dict[str, Any]
         meta = _read_case_meta(case_dir)
         live_data = load_json_file(case_dir / "live.json")
         reconcile_options = {
-            "ignoreFields": meta.get("ignoreFields"),
-            "transformations": (
-                _resolve_preset(meta.get("transformations"), presets.get("transformations"))
-                or meta.get("transformations")
-            ),
-            "dataMapping": (
-                _resolve_preset(meta.get("dataMapping"), presets.get("dataMapping"))
-                or meta.get("dataMapping")
-            ),
+            "ignoreFields": meta.get("ignoreFields") or defaults.get("ignoreFields"),
+            "transformations": _resolve_snapline_field("transformations", meta, defaults, presets),
+            "dataMapping": _resolve_snapline_field("dataMapping", meta, defaults, presets),
         }
 
         assertion = assert_against_file(

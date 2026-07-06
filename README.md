@@ -20,17 +20,22 @@ cd python
 uv sync
 ```
 
-## Run the full integration demo (15 scenarios)
+## Run the full integration demo (19 scenarios)
 
 ```bash
-cd python
-python demo/run_all/run_all.py
+cd reconcile-python
+uv sync
+
+uv run demo              # build not required — run all 19 scenarios
+uv run demo-list         # list scenario ids
+uv run demo-run api-vs-file-graphql   # one scenario (mock API/DB auto-started)
+python run_demo.py       # alternative entry point
 ```
 
 Optional report output:
 
 ```bash
-REPORT_FORMAT=html REPORT_OUTPUT=reports/demo.html python demo/run_all/run_all.py
+REPORT_FORMAT=html REPORT_OUTPUT=reports/demo.html uv run demo
 ```
 
 ## Packages
@@ -76,5 +81,6 @@ asyncio.run(main())
 - Protocols: REST, GraphQL, SOAP
 - Auth: Basic, OAuth2 client credentials, OpenID (token/idToken/assertion)
 - DB: real SQLite + stub postgres/mysql with `seed_db`
+- NoSQL: in-memory document stores with `linkKeys`
 - Reporting: JSON, HTML, text
-- 15 integration demo scenarios with mock server and fixture cases
+- 19 integration demo scenarios with mock server and fixture cases

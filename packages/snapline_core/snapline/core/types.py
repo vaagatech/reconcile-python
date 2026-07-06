@@ -41,8 +41,17 @@ class ApiFileTestConfig(ReconcileOptions):
 class DbComparisonConfig(ReconcileOptions):
     sourceDb: DbConnectionLike
     targetDb: DbConnectionLike
-    query: str
+    query: str | None
     params: dict[str, Any] | None
+    sourceQuery: str | None
+    targetQuery: str | None
+    sourceParams: dict[str, Any] | None
+    targetParams: dict[str, Any] | None
+    linkKeys: dict[str, str] | None
+    sourceCollection: str | None
+    targetCollection: str | None
+    sourceFilter: dict[str, Any] | None
+    targetFilter: dict[str, Any] | None
 
 
 class ApiToDbConfig(ReconcileOptions):

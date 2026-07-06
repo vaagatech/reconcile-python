@@ -15,6 +15,7 @@ from .db import (
 )
 from .db.db_connection import DbConnection
 from .db_comparison.run_db_comparison import run_db_comparison
+from .nosql import InMemoryDocumentStore, nosql
 from .reporting.write_report import build_report, render_report, write_test_report
 from .test_suite import test_suite
 
@@ -34,7 +35,9 @@ __all__ = [
     "execute_api_request",
     "exec_sqlite_file",
     "exec_sqlite_sql",
+    "InMemoryDocumentStore",
     "load_json_file",
+    "nosql",
     "reconcile",
     "render_report",
     "resolve_url",

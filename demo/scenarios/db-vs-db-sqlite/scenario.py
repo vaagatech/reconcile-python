@@ -5,6 +5,7 @@ from snapline.demo_shared import (
     DEMO_EMAIL,
     status_mapping_lookup,
     warehouse_customer_join_query,
+    warehouse_order_by_id_query,
     warehouse_order_join_query,
     warehouse_order_status_mapping,
 )
@@ -34,13 +35,15 @@ class Scenario:
         )
 
         orders_result = await test_suite(
-            "DB vs DB: orders (fulfillment status codes)",
+            "DB vs DB: orders (multi-table source, PK lookup on target)",
             {
                 "dbComparison": {
                     "sourceDb": source_db,
                     "targetDb": target_db,
-                    "query": warehouse_order_join_query,
-                    "params": {"email": DEMO_EMAIL},
+                    "sourceQuery": warehouse_order_join_query,
+                    "sourceParams": {"email": DEMO_EMAIL},
+                    "targetQuery": warehouse_order_by_id_query,
+                    "linkKeys": {"orderId": "orderId"},
                     "dataMapping": warehouse_order_status_mapping,
                 }
             },
