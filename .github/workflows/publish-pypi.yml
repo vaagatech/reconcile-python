@@ -1,13 +1,13 @@
 # Publish library packages to PyPI on semver tags (v1.2.3).
 #
-# Requires repository secret PYPI_API_TOKEN.
-# PyPI project names must match pyproject.toml exactly (hyphens, not underscores):
-#   snapline-engine
-#   snapline-auth-adapters
-#   snapline-api-adapters
-#   snapline-core
+# Release flow:
+#   1. Push tag v0.1.11 (versions in repo may still be on the previous dev version)
+#   2. Workflow syncs all pyproject.toml files to the tag version, builds, and publishes
+#   3. After all packages publish, bumps patch version and commits to main for the next dev cycle
 #
-# Repository: https://github.com/vaagatech/snapline-python
+# Requires repository secret PYPI_API_TOKEN.
+# PyPI project names: snapline-engine, snapline-auth-adapters,
+#                     snapline-api-adapters, snapline-core
 
 name: Publish to PyPI
 
@@ -15,6 +15,9 @@ on:
   push:
     tags:
       - "v[0-9]*.[0-9]*.[0-9]*"
+
+permissions:
+  contents: read
 
 jobs:
   validate-tag:
@@ -62,21 +65,13 @@ jobs:
             exit 1
           fi
 
-      - name: Verify package version matches tag
-        env:
-          RELEASE_VERSION: ${{ needs.validate-tag.outputs.version }}
-        run: |
-          package_version="$(grep -E '^version = ' "${{ matrix.package_dir }}/pyproject.toml" | head -1 | sed -E 's/^version = "([^"]+)"/\1/')"
-          if [ "$package_version" != "$RELEASE_VERSION" ]; then
-            echo "Tag version $RELEASE_VERSION does not match ${{ matrix.package_name }} version $package_version."
-            echo "Run: python scripts/sync_versions.py --version $RELEASE_VERSION"
-            exit 1
-          fi
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
+      - name: Sync versions from tag
+        run: python scripts/sync_versions.py --version "${{ needs.validate-tag.outputs.version }}"
 
       - name: Build wheel and sdist
         run: |
@@ -88,3 +83,41 @@ jobs:
         with:
           packages-dir: ${{ matrix.package_dir }}/dist
           password: ${{ secrets.PYPI_API_TOKEN }}
+
+  bump-version:
+    name: Bump development version
+    needs:
+      - validate-tag
+      - publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Bump to next patch version
+        run: |
+          python scripts/sync_versions.py --version "${{ needs.validate-tag.outputs.version }}"
+          python scripts/sync_versions.py --bump-patch
+
+      - name: Commit and push version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pyproject.toml packages/*/pyproject.toml demo/shared/pyproject.toml
+          if git diff --staged --quiet; then
+            echo "No version changes to commit."
+            exit 0
+          fi
+          next_version="$(grep -E '^version = ' pyproject.toml | head -1 | sed -E 's/^version = "([^"]+)"/\1/')"
+          git commit -m "chore: bump version to ${next_version} after publishing v${{ needs.validate-tag.outputs.version }}"
+          git push
