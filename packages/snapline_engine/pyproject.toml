@@ -6,6 +6,7 @@ build-backend = "hatchling.build"
 name = "snapline-engine"
 version = "0.2.1"
 description = "Deep JSON reconciliation engine for Snapline"
+readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
 authors = [{ name = "VaagaTech", email = "info@vaagatech.com" }]
