@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "snapline-demo-shared"
-version = "0.2.0"
+version = "0.2.1"
 description = "Shared demo utilities for Snapline Python demos"
 license = "MIT"
 requires-python = ">=3.10"
 authors = [{ name = "VaagaTech", email = "info@vaagatech.com" }]
 dependencies = [
-    "snapline-core==0.2.0",
+    "snapline-core==0.2.1",
     "graphql-core>=3.2.0",
 ]
 
