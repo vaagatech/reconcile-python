@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from snapline.engine import reconcile
+from snapline.engine import snapline
 
 from ..types import CrossSystemResult, DbComparisonConfig
 from .fetch_store_data import fetch_source_row, fetch_target_row
@@ -10,7 +10,7 @@ async def run_db_comparison(db_comparison: DbComparisonConfig | dict) -> CrossSy
     source_data = await fetch_source_row(db_comparison)
     target_data = await fetch_target_row(db_comparison, source_data)
 
-    result = reconcile(
+    result = snapline(
         source_data,
         target_data,
         {

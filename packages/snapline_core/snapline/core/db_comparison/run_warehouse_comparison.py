@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, AsyncIterator, Optional
 
-from snapline.engine import reconcile
+from snapline.engine import snapline
 
 from ..types import TestStepResult, TestSuiteResult
 from .fetch_store_data import fetch_target_row, is_document_store
@@ -66,7 +66,7 @@ async def _compare_row(
             "message": f"No target row for source keys {link_keys}",
         }
 
-    result = reconcile(
+    result = snapline(
         source_row,
         target_row,
         {

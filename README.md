@@ -66,7 +66,7 @@ REPORT_FORMAT=html REPORT_OUTPUT=reports/demo.html uv run demo
 - `test_suite`, `fixtures_dir`, `module_dir`
 - `run_api_fixture_cases`, `run_snapline_fixture_cases`
 - `resolve_report_config`, `write_test_report`
-- `reconcile`, `snapline`, `DbConnectionLike`, NoSQL helpers
+- `snapline`, `assert_against_file`, `DbConnectionLike`, NoSQL helpers
 
 ## Quick start
 

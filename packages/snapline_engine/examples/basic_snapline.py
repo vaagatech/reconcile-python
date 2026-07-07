@@ -1,5 +1,5 @@
 """Basic Snapline engine usage."""
-from snapline.engine import reconcile
+from snapline.engine import snapline
 
 live_response = {
     "id": "usr_001",
@@ -29,7 +29,7 @@ def _valid_date(value, _key=None, _parent=None):
     return "INVALID_DATE"
 
 
-result = reconcile(
+result = snapline(
     live_response,
     expected,
     {

@@ -49,9 +49,10 @@
       </table>
 
       <h2>Reconciliation</h2>
-      <pre><code>from snapline.engine import reconcile
+      <p>The engine function is <code>snapline()</code>.</p>
+      <pre><code>from snapline.engine import snapline
 
-result = reconcile(live_data, expected_data, {
+result = snapline(live_data, expected_data, {
     "ignoreFields": ["metadata.traceId"],
     "transformations": {
         "role": lambda v, _k, _p: str(v).upper(),

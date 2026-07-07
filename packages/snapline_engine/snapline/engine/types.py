@@ -19,21 +19,17 @@ class DiffResult(dict):
     message: str
 
 
-class ReconcileOptions(dict):
+class SnaplineOptions(dict):
     ignoreFields: list[str]
     transformations: TransformationMap
     dataMapping: DataMappingMap
 
 
-class ReconcileResult(dict):
+class SnaplineResult(dict):
     match: bool
     processed: Any
     expected: Any
     diff: DiffResult | None
-
-
-SnaplineOptions = ReconcileOptions
-SnaplineResult = ReconcileResult
 
 
 class CompareResult(dict):

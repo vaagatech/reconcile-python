@@ -1,7 +1,7 @@
 from snapline.api_adapters import api, execute_api, resolve_url
 from snapline.auth_adapters import AuthAdapter, auth
-from snapline.engine import assert_against_file, load_json_file, reconcile, snapline
-from snapline.engine.types import ReconcileOptions, SnaplineOptions, SnaplineResult
+from snapline.engine import assert_against_file, load_json_file, snapline
+from snapline.engine.types import SnaplineOptions, SnaplineResult
 
 from .api_config.to_api_request_config import to_api_request_config
 from .cross_system.run_api_to_db import run_api_to_db
@@ -62,13 +62,11 @@ __all__ = [
     "load_json_file",
     "module_dir",
     "nosql",
-    "reconcile",
     "redact_fields",
     "redact_suite_results",
     "render_report",
     "resolve_report_config",
     "resolve_url",
-    "ReconcileOptions",
     "run_api_fixture_cases",
     "run_api_to_db",
     "run_db_comparison",

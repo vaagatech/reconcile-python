@@ -1,10 +1,10 @@
 """Basic Snapline usage example."""
-from snapline.engine import reconcile
+from snapline.engine import snapline
 
 live = {"email": "alice@example.com", "status": "synced", "pincode": "123456"}
 expected = {"email": "alice@example.com", "status": "synced"}
 
-result = reconcile(
+result = snapline(
     live,
     expected,
     {

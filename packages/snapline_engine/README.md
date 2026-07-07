@@ -21,8 +21,6 @@ result = snapline(
 print(result["match"])
 ```
 
-`reconcile()` is an alias of `snapline()`.
-
 ## Documentation
 
 **https://vaagatech.github.io/snapline-python/** · [Node.js docs](https://vaagatech.github.io/snapline/)

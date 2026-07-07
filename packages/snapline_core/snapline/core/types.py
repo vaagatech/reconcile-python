@@ -4,7 +4,7 @@ from typing import Any, Literal, Protocol
 
 from snapline.api_adapters.types import ApiRequestConfig
 from snapline.auth_adapters import AuthAdapter
-from snapline.engine.types import DataMappingMap, DiffResult, ReconcileOptions, TransformationMap
+from snapline.engine.types import DataMappingMap, DiffResult, SnaplineOptions, TransformationMap
 
 DbRow = dict[str, Any]
 DbDialect = Literal["postgres", "mysql"]
@@ -20,7 +20,7 @@ class DbQueryConfig(dict):
     params: dict[str, Any] | None
 
 
-class ApiFileTestConfig(ReconcileOptions):
+class ApiFileTestConfig(SnaplineOptions):
     endpoint: str | None
     method: str | None
     inputFile: str | None
@@ -38,7 +38,7 @@ class ApiFileTestConfig(ReconcileOptions):
     dataPath: str | None
 
 
-class DbComparisonConfig(ReconcileOptions):
+class DbComparisonConfig(SnaplineOptions):
     sourceDb: DbConnectionLike
     targetDb: DbConnectionLike
     query: str | None
@@ -54,12 +54,12 @@ class DbComparisonConfig(ReconcileOptions):
     targetFilter: dict[str, Any] | None
 
 
-class ApiToDbConfig(ReconcileOptions):
+class ApiToDbConfig(SnaplineOptions):
     api: ApiRequestConfig
     db: DbQueryConfig
 
 
-class DbToApiConfig(ReconcileOptions):
+class DbToApiConfig(SnaplineOptions):
     db: DbQueryConfig
     api: ApiRequestConfig
     inputFromDb: bool | None

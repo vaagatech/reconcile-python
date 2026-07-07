@@ -45,7 +45,7 @@
                 │                     │
     ┌───────────▼──────────┐  ┌───────▼──────────────────────┐
     │ snapline-engine      │  │ snapline-api-adapters        │
-    │ reconcile · compare  │  │ REST · GraphQL · SOAP        │
+    │ snapline · compare   │  │ REST · GraphQL · SOAP        │
     └──────────────────────┘  └───────────┬──────────────────┘
                                           │
                               ┌───────────▼──────────────────┐
@@ -81,10 +81,10 @@
       <div class="diagram">await test_suite(name, config)
   │
   ├─ auth.initialize()          optional OAuth2 / OpenID / Basic
-  ├─ api                        execute_api → reconcile vs expectedFile
-  ├─ dbComparison               fetch rows → reconcile
-  ├─ apiToDb                    execute_api → DB row → reconcile
-  └─ dbToApi                    DB row → execute_api → reconcile</div>
+  ├─ api                        execute_api → snapline vs expectedFile
+  ├─ dbComparison               fetch rows → snapline
+  ├─ apiToDb                    execute_api → DB row → snapline
+  └─ dbToApi                    DB row → execute_api → snapline</div>
 
       <h2>Repository layout</h2>
       <pre><code>snapline-python/

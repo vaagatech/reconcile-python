@@ -6,14 +6,14 @@ from .apply_data_mapping import apply_data_mapping
 from .apply_transformations import apply_transformations
 from .compare_objects import compare_objects
 from .strip_fields import strip_fields
-from .types import ReconcileOptions
+from .types import SnaplineOptions
 from .utils.deep_clone import deep_clone
 
 
-def reconcile(
+def snapline(
     live_data: Any,
     expected_data: Any,
-    options: ReconcileOptions | dict[str, Any] | None = None,
+    options: SnaplineOptions | dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     opts = options or {}
     ignore_fields = opts.get("ignoreFields", [])
@@ -35,6 +35,3 @@ def reconcile(
         "expected": expected,
         "diff": comparison["diff"],
     }
-
-
-snapline = reconcile

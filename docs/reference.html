@@ -51,8 +51,8 @@
       <table>
         <thead><tr><th>Function</th><th>Description</th></tr></thead>
         <tbody>
-          <tr><td><code>reconcile(live, expected, options)</code></td><td>Alias <code>snapline()</code></td></tr>
-          <tr><td><code>assert_against_file(live, path, options)</code></td><td>Reconcile vs JSON file</td></tr>
+          <tr><td><code>snapline(live, expected, options)</code></td><td>Full reconciliation pipeline</td></tr>
+          <tr><td><code>assert_against_file(live, path, options)</code></td><td>Compare live data vs JSON file</td></tr>
           <tr><td><code>load_json_file(path, root_dir=None)</code></td><td>Load JSON with optional sandboxing</td></tr>
         </tbody>
       </table>
@@ -125,7 +125,7 @@ module_dir(__file__)</code></pre>
 
       <h2>pytest</h2>
       <pre><code>pytest tests -q</code></pre>
-      <p>Unit tests cover reconcile, safe_path, safe_url, redact_fields, and xml_utils.</p>
+      <p>Unit tests cover snapline, safe_path, safe_url, redact_fields, and xml_utils.</p>
 
       <footer class="footer">
         <p><a href="index.html">← Overview</a></p>

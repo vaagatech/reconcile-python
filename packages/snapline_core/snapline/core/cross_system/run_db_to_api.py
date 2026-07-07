@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from snapline.api_adapters import execute_api
-from snapline.engine import reconcile
+from snapline.engine import snapline
 
 from ..types import CrossSystemResult, DbToApiConfig
 
@@ -47,7 +47,7 @@ async def run_db_to_api(
             },
         }
 
-    result = reconcile(
+    result = snapline(
         db_data,
         response["data"],
         {

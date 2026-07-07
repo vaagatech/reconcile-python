@@ -123,7 +123,7 @@ async def test_suite(name: str, config: TestSuiteConfig | dict[str, Any]) -> Tes
                 }
             )
             _log_step_result(
-                "api response reconciled with fixture file",
+                "api response matched fixture file",
                 assertion["match"],
                 assertion["diff"],
                 fail,
