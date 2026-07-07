@@ -1,17 +1,15 @@
 from __future__ import annotations
 
 from snapline.core import db, seed_db, test_suite
-from snapline.demo_shared import DEMO_EMAIL, status_mapping_lookup
 from snapline.demo_shared.types import ScenarioContext
 
-SOURCE_DSN = "postgresql://demo/source"
-TARGET_DSN = "mysql://demo/target"
-
-USER_SYNC_QUERY = """
-  SELECT status, email
-  FROM users
-  WHERE email = :email
-"""
+from .demo_data import (
+    DEMO_EMAIL,
+    SOURCE_DSN,
+    TARGET_DSN,
+    cross_dialect_status_mapping,
+    user_sync_query,
+)
 
 
 class Scenario:
@@ -29,9 +27,9 @@ class Scenario:
                 "dbComparison": {
                     "sourceDb": db.postgres(SOURCE_DSN),
                     "targetDb": db.mysql(TARGET_DSN),
-                    "query": USER_SYNC_QUERY,
+                    "query": user_sync_query,
                     "params": {"email": DEMO_EMAIL},
-                    "dataMapping": {"status": status_mapping_lookup["status"]},
+                    "dataMapping": cross_dialect_status_mapping,
                 }
             },
         )

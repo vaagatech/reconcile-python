@@ -7,6 +7,7 @@ from typing import Any
 from ..types import TestSuiteResult
 from .html_reporter import render_html_report
 from .json_reporter import render_json_report
+from .redact_fields import redact_suite_results
 from .text_reporter import render_text_report
 from .types import ReportConfig, TestRunReport, TestRunReportMeta
 
@@ -50,7 +51,8 @@ def write_test_report(
     config: ReportConfig | dict[str, Any],
     meta: TestRunReportMeta | dict[str, Any] | None = None,
 ) -> str:
-    report = build_report(suites, meta)
+    sanitized = redact_suite_results(suites, config.get("redactFields"))
+    report = build_report(sanitized, meta)
     content = render_report(report, config["format"])
     output_path = Path(config["outputPath"])
     output_path.parent.mkdir(parents=True, exist_ok=True)

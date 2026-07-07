@@ -3,22 +3,17 @@ from __future__ import annotations
 import os
 import time
 
-from snapline.core import auth, write_test_report
+from snapline.core import resolve_report_config, write_test_report
 
-from .mock_server import create_mock_server
-from .report_config import resolve_report_config
+from .mock_server import close_mock_server, create_mock_server
 from .sqlite_setup import close_demo_database, create_demo_database
 from .types import ScenarioContext, ScenarioModule
 
 
-def create_demo_auth(base_url: str):
-    return auth.oauth2(
-        {
-            "tokenUrl": f"{base_url}/oauth/token",
-            "clientId": os.environ.get("CLIENT_ID", "demo-client"),
-            "clientSecret": os.environ.get("CLIENT_SECRET", "demo-secret"),
-        }
-    )
+def apply_demo_env(base_url: str) -> None:
+    os.environ["API_BASE_URL"] = base_url
+    os.environ.setdefault("CLIENT_ID", "demo-client")
+    os.environ.setdefault("CLIENT_SECRET", "demo-secret")
 
 
 async def bootstrap_scenario(scenario: ScenarioModule) -> int:
@@ -32,15 +27,24 @@ async def bootstrap_scenario(scenario: ScenarioModule) -> int:
         if scenario.needs_server:
             server_handle = create_mock_server()
             print(f"Mock API + GraphQL server listening at {server_handle.base_url}")
+            apply_demo_env(server_handle.base_url)
 
         if scenario.needs_database:
             database = create_demo_database()
 
         context = ScenarioContext(
-            base_url=server_handle.base_url if server_handle else "http://127.0.0.1:0",
-            database=database or create_demo_database(),
+            base_url=os.environ.get("API_BASE_URL", "http://127.0.0.1:0"),
+            database=database,
         )
-        result = await scenario.run(context)
+
+        try:
+            result = await scenario.run(context)
+        except Exception as exc:
+            result = {
+                "name": scenario.name,
+                "passed": False,
+                "results": [{"step": "run", "passed": False, "message": str(exc)}],
+            }
 
         duration_ms = int(time.time() * 1000 - started_at)
 
@@ -63,4 +67,4 @@ async def bootstrap_scenario(scenario: ScenarioModule) -> int:
         if database:
             close_demo_database(database)
         if server_handle:
-            server_handle.server.shutdown()
+            close_mock_server(server_handle)

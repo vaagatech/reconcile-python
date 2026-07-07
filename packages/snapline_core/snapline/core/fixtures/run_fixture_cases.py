@@ -1,57 +1,57 @@
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 from typing import Any
 
-from snapline.core import (
-    api,
-    assert_against_file,
-    execute_api,
-    load_json_file,
-    to_api_request_config,
+from snapline.api_adapters import api, execute_api
+from snapline.engine import assert_against_file, load_json_file
+from snapline.engine.io.safe_path import assert_within_root
+
+from ..api_config.to_api_request_config import to_api_request_config
+from ..types import TestStepResult, TestSuiteResult
+from .fixture_layout import case_file_path, resolve_fixture_layout
+from .resolve_fixture_snapline_options import resolve_fixture_snapline_options
+from .types import (
+    FixtureCaseMeta,
+    ResolvedFixtureLayout,
+    RunApiFixtureCasesOptions,
+    RunSnaplineFixtureCasesOptions,
 )
-from snapline.auth_adapters import AuthAdapter
-
-from .types import ScenarioModule
 
 
-def _read_case_meta(case_dir: Path) -> dict[str, Any]:
-    return load_json_file(case_dir / "case.json")
+def _read_case_meta(
+    case_dir: Path,
+    layout: ResolvedFixtureLayout,
+    fixtures_root: Path,
+) -> FixtureCaseMeta:
+    meta_path = assert_within_root(
+        fixtures_root,
+        case_file_path(case_dir, layout["caseMetaFile"]),
+    )
+    return load_json_file(meta_path)
 
 
-def _resolve_preset(value: Any, presets: dict[str, Any] | None) -> Any:
-    if isinstance(value, str) and presets:
-        return presets.get(value)
-    if isinstance(value, dict):
-        return value
-    return None
+def _discover_case_ids(cases_root: Path, fixtures_root: Path) -> list[str]:
+    resolved_cases_root = assert_within_root(fixtures_root, cases_root)
+    return sorted(path.name for path in resolved_cases_root.iterdir() if path.is_dir())
 
 
-def _resolve_snapline_field(
-    field: str,
-    meta: dict[str, Any],
+def _exists(path: str | Path) -> bool:
+    return Path(path).is_file()
+
+
+def _safe_case_file(case_dir: Path, file_name: str, fixtures_root: Path) -> Path:
+    return assert_within_root(fixtures_root, case_file_path(case_dir, file_name))
+
+
+def _build_api_config(
+    case_dir: Path,
+    meta: FixtureCaseMeta,
     defaults: dict[str, Any],
-    presets: dict[str, Any],
-) -> Any:
-    preset_map = presets.get(field)
-    for candidate in (meta.get(field), defaults.get(field)):
-        if candidate is None:
-            continue
-        resolved = _resolve_preset(candidate, preset_map)
-        if resolved is not None:
-            return resolved
-        if not isinstance(candidate, str):
-            return candidate
-    return None
-
-
-def _discover_case_ids(cases_root: Path) -> list[str]:
-    return sorted(path.name for path in cases_root.iterdir() if path.is_dir())
-
-
-def _build_api_config(case_dir: Path, meta: dict[str, Any], defaults: dict[str, Any]) -> dict[str, Any]:
+    layout: ResolvedFixtureLayout,
+    fixtures_root: Path,
+) -> dict[str, Any]:
     protocol = meta.get("protocol") or defaults.get("protocol", "graphql")
     endpoint = meta.get("endpoint") or defaults.get("endpoint", "/graphql")
     data_path = meta.get("dataPath") or defaults.get("dataPath")
@@ -61,8 +61,10 @@ def _build_api_config(case_dir: Path, meta: dict[str, Any], defaults: dict[str, 
             **api.graphql(
                 {
                     "endpoint": endpoint,
-                    "queryFile": str(case_dir / "query.graphql"),
-                    "variablesFile": str(case_dir / "variables.json"),
+                    "queryFile": str(_safe_case_file(case_dir, layout["queryFile"], fixtures_root)),
+                    "variablesFile": str(
+                        _safe_case_file(case_dir, layout["variablesFile"], fixtures_root)
+                    ),
                     "dataPath": data_path,
                 }
             )
@@ -74,18 +76,17 @@ def _build_api_config(case_dir: Path, meta: dict[str, Any], defaults: dict[str, 
                 {
                     "endpoint": endpoint,
                     "soapAction": meta.get("soapAction", "GetUser"),
-                    "inputFile": str(case_dir / "input.xml"),
+                    "inputFile": str(_safe_case_file(case_dir, layout["soapInputFile"], fixtures_root)),
                 }
             )
         }
 
+    rest_input_path = _safe_case_file(case_dir, layout["restInputFile"], fixtures_root)
     return {
         "endpoint": endpoint,
         "method": meta.get("method", "GET"),
         "protocol": "rest",
-        "inputFile": str(case_dir / "input.json")
-        if (case_dir / "input.json").exists()
-        else None,
+        "inputFile": str(rest_input_path) if _exists(rest_input_path) else None,
     }
 
 
@@ -112,44 +113,72 @@ def _log_case_result(
         print(f"    diff: {json.dumps(diff)}")
 
 
-async def run_api_fixture_cases(options: dict[str, Any]) -> dict[str, Any]:
+def _api_execute_context(options: RunApiFixtureCasesOptions | dict[str, Any], auth_headers: dict[str, str]) -> dict[str, Any]:
+    return {
+        "baseUrl": options["baseUrl"],
+        "authHeaders": auth_headers,
+        "fetchImpl": options.get("fetchImpl"),
+        "timeoutMs": options.get("timeoutMs"),
+        "blockPrivateNetworks": options.get("blockPrivateNetworks", False),
+        "blockMetadataHosts": options.get("blockMetadataHosts", True),
+    }
+
+
+async def run_api_fixture_cases(
+    options: RunApiFixtureCasesOptions | dict[str, Any],
+) -> TestSuiteResult:
     suite_name = options["suiteName"]
-    fixtures_root = Path(options["fixturesRoot"])
+    fixtures_root = Path(options["fixturesRoot"]).resolve()
     base_url = options["baseUrl"]
-    auth: AuthAdapter | None = options.get("auth")
-    defaults = options.get("defaults", {})
-    presets = options.get("presets", {})
+    auth = options.get("auth")
+    layout = options.get("layout")
+    defaults = options.get("defaults") or {}
+    presets = options.get("presets") or {}
     case_ids = options.get("caseIds")
 
-    cases_root = fixtures_root / "cases"
-    ids = case_ids or _discover_case_ids(cases_root)
-    results: list[dict[str, Any]] = []
+    cases_dir = (layout or {}).get("casesDir", "cases")
+    cases_root = fixtures_root / cases_dir
+    ids = case_ids or _discover_case_ids(cases_root, fixtures_root)
+    results: list[TestStepResult] = []
     passed = True
 
     print(f"\n▶ {suite_name}")
 
     auth_headers = dict(options.get("authHeaders") or {})
     if auth:
-        auth_result = await auth.initialize()
-        auth_headers = auth_result["headers"]
-        results.append(
-            {
-                "step": "auth",
-                "passed": True,
-                "token": "[redacted]" if auth_result.get("token") else None,
-            }
-        )
-        print("  ✓ auth initialized")
+        try:
+            auth_result = await auth.initialize()
+            auth_headers = auth_result["headers"]
+            results.append(
+                {
+                    "step": "auth",
+                    "passed": True,
+                    "token": "[redacted]" if auth_result.get("token") else None,
+                }
+            )
+            print("  ✓ auth initialized")
+        except Exception as error:
+            passed = False
+            message = str(error)
+            results.append({"step": "auth", "passed": False, "message": message})
+            print(f"  ✗ auth failed: {message}")
+            return {"name": suite_name, "passed": False, "results": results}
 
     for case_id in ids:
-        case_dir = cases_root / case_id
-        meta = _read_case_meta(case_dir)
+        case_dir = assert_within_root(fixtures_root, cases_root / case_id)
+        base_layout = resolve_fixture_layout(layout, defaults)
+        meta = _read_case_meta(case_dir, base_layout, fixtures_root)
+        case_layout = resolve_fixture_layout(layout, defaults, meta)
         expect_match = meta["expectMatch"]
         expected_status = meta.get("expectStatus", 200)
-        api_config = _build_api_config(case_dir, meta, defaults)
+        api_config = _build_api_config(case_dir, meta, defaults, case_layout, fixtures_root)
         request = to_api_request_config(api_config)
         case_auth_headers = {} if meta.get("skipAuth") else auth_headers
-        response = execute_api(request, {"baseUrl": base_url, "authHeaders": case_auth_headers})
+        execute_context = {
+            **_api_execute_context(options, case_auth_headers),
+            "authHeaders": case_auth_headers,
+        }
+        response = execute_api(request, execute_context)
 
         if response["status"] != expected_status:
             passed = False
@@ -187,16 +216,11 @@ async def run_api_fixture_cases(options: dict[str, Any]) -> dict[str, Any]:
             )
             continue
 
-        reconcile_options = {
-            "ignoreFields": meta.get("ignoreFields") or defaults.get("ignoreFields"),
-            "transformations": _resolve_snapline_field("transformations", meta, defaults, presets),
-            "dataMapping": _resolve_snapline_field("dataMapping", meta, defaults, presets),
-        }
-
+        snapline_options = resolve_fixture_snapline_options(meta, defaults, presets)
         assertion = assert_against_file(
             response["data"],
-            case_dir / "expected.json",
-            reconcile_options,
+            _safe_case_file(case_dir, case_layout["expectedFile"], fixtures_root),
+            snapline_options,
         )
         case_passed = assertion["match"] == expect_match
 
@@ -244,34 +268,36 @@ async def run_api_fixture_cases(options: dict[str, Any]) -> dict[str, Any]:
     return {"name": suite_name, "passed": passed, "results": results}
 
 
-async def run_reconcile_fixture_cases(options: dict[str, Any]) -> dict[str, Any]:
+async def run_snapline_fixture_cases(
+    options: RunSnaplineFixtureCasesOptions | dict[str, Any],
+) -> TestSuiteResult:
     suite_name = options["suiteName"]
-    fixtures_root = Path(options["fixturesRoot"])
-    defaults = options.get("defaults", {})
-    presets = options.get("presets", {})
+    fixtures_root = Path(options["fixturesRoot"]).resolve()
+    layout = options.get("layout")
+    defaults = options.get("defaults")
+    presets = options.get("presets") or {}
     case_ids = options.get("caseIds")
 
-    cases_root = fixtures_root / "cases"
-    ids = case_ids or _discover_case_ids(cases_root)
-    results: list[dict[str, Any]] = []
+    cases_dir = (layout or {}).get("casesDir", "cases")
+    cases_root = fixtures_root / cases_dir
+    ids = case_ids or _discover_case_ids(cases_root, fixtures_root)
+    results: list[TestStepResult] = []
     passed = True
 
     print(f"\n▶ {suite_name}")
 
     for case_id in ids:
-        case_dir = cases_root / case_id
-        meta = _read_case_meta(case_dir)
-        live_data = load_json_file(case_dir / "live.json")
-        reconcile_options = {
-            "ignoreFields": meta.get("ignoreFields") or defaults.get("ignoreFields"),
-            "transformations": _resolve_snapline_field("transformations", meta, defaults, presets),
-            "dataMapping": _resolve_snapline_field("dataMapping", meta, defaults, presets),
-        }
+        case_dir = assert_within_root(fixtures_root, cases_root / case_id)
+        base_layout = resolve_fixture_layout(layout, defaults)
+        meta = _read_case_meta(case_dir, base_layout, fixtures_root)
+        case_layout = resolve_fixture_layout(layout, defaults, meta)
+        live_data = load_json_file(_safe_case_file(case_dir, case_layout["liveFile"], fixtures_root))
+        snapline_options = resolve_fixture_snapline_options(meta, defaults, presets)
 
         assertion = assert_against_file(
             live_data,
-            case_dir / "expected.json",
-            reconcile_options,
+            _safe_case_file(case_dir, case_layout["expectedFile"], fixtures_root),
+            snapline_options,
         )
         case_passed = assertion["match"] == meta["expectMatch"]
 

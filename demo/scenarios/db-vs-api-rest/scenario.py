@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from snapline.core import api, test_suite
-from snapline.demo_shared import db_status_mapping, DEMO_EMAIL
 from snapline.demo_shared.types import ScenarioContext
+
+from .demo_data import DEMO_EMAIL, db_status_mapping
 
 
 class Scenario:

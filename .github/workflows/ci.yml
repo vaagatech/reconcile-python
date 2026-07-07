@@ -1,0 +1,20 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -e snapline-python/packages/snapline_engine -e snapline-python/packages/snapline_api_adapters -e snapline-python/packages/snapline_auth_adapters -e snapline-python/packages/snapline_core -e snapline-python/demo/shared pytest
+      - run: pytest snapline-python/tests -q
+        working-directory: .
+      - run: python snapline-python/demo/run_all/run_all.py
+        working-directory: .

@@ -11,15 +11,17 @@ pip install snapline-engine
 ## Quick start
 
 ```python
-from snapline.engine import reconcile
+from snapline.engine import snapline
 
-result = reconcile(
+result = snapline(
     {"id": "1", "status": "ok", "traceId": "abc"},
     {"id": "1", "status": "ok"},
     {"ignoreFields": ["traceId"]},
 )
 print(result["match"])
 ```
+
+`reconcile()` is an alias of `snapline()`.
 
 ## Documentation
 

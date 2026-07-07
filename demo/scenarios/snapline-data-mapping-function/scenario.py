@@ -1,15 +1,14 @@
 from __future__ import annotations
 
-from snapline.core import test_suite
-from snapline.demo_shared import (
-    api_status_mapping,
+from snapline.core import fixtures_dir, run_snapline_fixture_cases, test_suite
+from snapline.demo_shared.types import ScenarioContext
+
+from .demo_data import (
     DEMO_EMAIL,
-    fixtures_dir,
-    run_reconcile_fixture_cases,
+    api_status_mapping,
     status_mapping_function,
     warehouse_plan_mapping,
 )
-from snapline.demo_shared.types import ScenarioContext
 
 
 class Scenario:
@@ -18,10 +17,10 @@ class Scenario:
     needs_database = True
 
     async def run(self, context: ScenarioContext) -> dict:
-        fixture_result = await run_reconcile_fixture_cases(
+        fixture_result = await run_snapline_fixture_cases(
             {
                 "suiteName": "Snapline: dataMapping fixture cases (pass + expected failures)",
-                "fixturesRoot": str(fixtures_dir(__file__)),
+                "fixturesRoot": str(fixtures_dir(__file__, {"relativePath": "fixtures"})),
                 "presets": {
                     "dataMapping": {
                         "warehouseStatus": status_mapping_function,

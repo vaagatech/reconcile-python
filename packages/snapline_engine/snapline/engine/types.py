@@ -32,6 +32,10 @@ class ReconcileResult(dict):
     diff: DiffResult | None
 
 
+SnaplineOptions = ReconcileOptions
+SnaplineResult = ReconcileResult
+
+
 class CompareResult(dict):
     match: bool
     diff: DiffResult | None

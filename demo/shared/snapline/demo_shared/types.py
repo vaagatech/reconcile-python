@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Protocol
 
 from .sqlite_setup import DemoDatabase
 
 
 class ScenarioContext:
-    def __init__(self, base_url: str, database: DemoDatabase) -> None:
+    def __init__(self, base_url: str, database: DemoDatabase | None = None) -> None:
         self.base_url = base_url
         self.database = database
 

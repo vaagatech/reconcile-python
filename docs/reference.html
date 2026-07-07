@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Reference — Snapline (Python)</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <a class="brand" href="index.html">Snapline</a>
+      <span class="brand-sub">Python · snapline-core</span>
+      <nav class="nav">
+        <div class="nav-section">Documentation</div>
+        <a href="index.html">Overview</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="getting-started.html">Getting Started</a>
+        <a href="guide.html">End-to-End Guide</a>
+        <a href="demos.html">Demo Scenarios</a>
+        <a href="reference.html" class="active">API Reference</a>
+        <div class="nav-section">Links</div>
+        <a href="https://github.com/vaagatech/snapline-python">GitHub</a>
+        <a href="https://pypi.org/project/snapline-core/">PyPI</a>
+        <a href="https://github.com/vaagatech/snapline">Node.js version</a>
+      </nav>
+    </aside>
+    <main class="content">
+      <header class="hero">
+        <h1>API Reference</h1>
+        <p class="lead">Quick reference for <code>snapline.core</code>. Config dict keys use camelCase for parity with Node.js.</p>
+      </header>
+
+      <h2>Core orchestration</h2>
+      <table>
+        <thead><tr><th>Function</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>await test_suite(name, config)</code></td><td>Run test modes; returns dict with <code>passed</code>, <code>results</code></td></tr>
+          <tr><td><code>await run_api_fixture_cases(options)</code></td><td>HTTP fixture cases</td></tr>
+          <tr><td><code>await run_snapline_fixture_cases(options)</code></td><td>Offline fixture cases</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Reconciliation</h2>
+      <table>
+        <thead><tr><th>Function</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>reconcile(live, expected, options)</code></td><td>Alias <code>snapline()</code></td></tr>
+          <tr><td><code>assert_against_file(live, path, options)</code></td><td>Reconcile vs JSON file</td></tr>
+          <tr><td><code>load_json_file(path, root_dir=None)</code></td><td>Load JSON with optional sandboxing</td></tr>
+        </tbody>
+      </table>
+
+      <h2>API factories</h2>
+      <pre><code>from snapline.core import api
+
+api.rest({...})
+api.graphql({...})
+api.soap({...})</code></pre>
+
+      <h2>Database</h2>
+      <pre><code>from snapline.core import db, seed_db, create_sqlite_connection
+
+db.postgres(url)
+db.mysql(url)
+db.sqlite(path)
+seed_db(dsn, rows)</code></pre>
+
+      <h2>NoSQL</h2>
+      <pre><code>from snapline.core import nosql
+
+store = nosql.memory()</code></pre>
+
+      <h2>Auth</h2>
+      <pre><code>from snapline.core import auth
+
+auth.oauth2({...})
+auth.openid({...})
+auth.basic({...})</code></pre>
+
+      <h2>Reporting</h2>
+      <table>
+        <thead><tr><th>Function</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>resolve_report_config(options)</code></td><td>Parse CLI / env</td></tr>
+          <tr><td><code>write_test_report(suites, config, meta=None)</code></td><td>Write report file</td></tr>
+          <tr><td><code>redact_fields(data, fields)</code></td><td>Mask sensitive values</td></tr>
+          <tr><td><code>redact_suite_results(suites, fields)</code></td><td>Redact all step results</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Fixture utilities</h2>
+      <pre><code>from snapline.core import fixtures_dir, module_dir
+
+fixtures_dir(__file__, relative_path="../fixtures")
+module_dir(__file__)</code></pre>
+
+      <h2>Package examples</h2>
+      <ul>
+        <li><code>packages/snapline_core/examples/</code> — basic_usage, api_to_db, db_to_api, db_comparison, graphql, soap, nosql</li>
+        <li><code>packages/snapline_engine/examples/basic_snapline.py</code></li>
+        <li><code>packages/snapline_api_adapters/examples/</code></li>
+        <li><code>packages/snapline_auth_adapters/examples/basic_auth.py</code></li>
+      </ul>
+
+      <h2>pytest</h2>
+      <pre><code>pytest tests -q</code></pre>
+      <p>Unit tests cover reconcile, safe_path, safe_url, redact_fields, and xml_utils.</p>
+
+      <footer class="footer">
+        <p><a href="index.html">← Overview</a></p>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

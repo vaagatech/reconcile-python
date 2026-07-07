@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Architecture — Snapline (Python)</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <a class="brand" href="index.html">Snapline</a>
+      <span class="brand-sub">Python · snapline-core</span>
+      <nav class="nav">
+        <div class="nav-section">Documentation</div>
+        <a href="index.html">Overview</a>
+        <a href="architecture.html" class="active">Architecture</a>
+        <a href="getting-started.html">Getting Started</a>
+        <a href="guide.html">End-to-End Guide</a>
+        <a href="demos.html">Demo Scenarios</a>
+        <a href="reference.html">API Reference</a>
+        <div class="nav-section">Links</div>
+        <a href="https://github.com/vaagatech/snapline-python">GitHub</a>
+        <a href="https://pypi.org/project/snapline-core/">PyPI</a>
+        <a href="https://github.com/vaagatech/snapline">Node.js version</a>
+      </nav>
+    </aside>
+    <main class="content">
+      <header class="hero">
+        <h1>Architecture</h1>
+        <p class="lead">Python Snapline is a uv workspace monorepo mirroring the Node.js package split. Consumers install <code>snapline-core</code>; config keys stay camelCase for cross-language parity.</p>
+      </header>
+
+      <h2>Package layers</h2>
+      <div class="diagram">┌─────────────────────────────────────────────────────────────┐
+│                    snapline-core (entry point)                 │
+│  test_suite · fixture runners · DB/NoSQL · reporting           │
+└───────────────┬─────────────────────┬────────────────────────┘
+                │                     │
+    ┌───────────▼──────────┐  ┌───────▼──────────────────────┐
+    │ snapline-engine      │  │ snapline-api-adapters        │
+    │ reconcile · compare  │  │ REST · GraphQL · SOAP        │
+    └──────────────────────┘  └───────────┬──────────────────┘
+                                          │
+                              ┌───────────▼──────────────────┐
+                              │ snapline-auth-adapters       │
+                              │ OAuth2 · OpenID · Basic      │
+                              └──────────────────────────────┘</div>
+
+      <table>
+        <thead>
+          <tr><th>Pip package</th><th>Import</th><th>Node equivalent</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>snapline-core</code></td><td><code>snapline.core</code></td><td><code>@vaagatech/snapline-core</code></td></tr>
+          <tr><td><code>snapline-engine</code></td><td><code>snapline.engine</code></td><td><code>@vaagatech/snapline-engine</code></td></tr>
+          <tr><td><code>snapline-api-adapters</code></td><td><code>snapline.api_adapters</code></td><td><code>@vaagatech/snapline-api-adapters</code></td></tr>
+          <tr><td><code>snapline-auth-adapters</code></td><td><code>snapline.auth_adapters</code></td><td><code>@vaagatech/snapline-auth-adapters</code></td></tr>
+          <tr><td><code>snapline-demo-shared</code></td><td><code>snapline.demo_shared</code></td><td><code>@vaagatech/snapline-demo-shared</code></td></tr>
+        </tbody>
+      </table>
+
+      <h2>Naming conventions</h2>
+      <table>
+        <thead><tr><th>Node</th><th>Python</th></tr></thead>
+        <tbody>
+          <tr><td><code>testSuite()</code></td><td><code>test_suite()</code> (async)</td></tr>
+          <tr><td><code>runApiFixtureCases()</code></td><td><code>run_api_fixture_cases()</code></td></tr>
+          <tr><td><code>writeTestReport()</code></td><td><code>write_test_report()</code></td></tr>
+          <tr><td><code>ignoreFields</code> in config</td><td><code>ignoreFields</code> (camelCase preserved)</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Runtime flow</h2>
+      <div class="diagram">await test_suite(name, config)
+  │
+  ├─ auth.initialize()          optional OAuth2 / OpenID / Basic
+  ├─ api                        execute_api → reconcile vs expectedFile
+  ├─ dbComparison               fetch rows → reconcile
+  ├─ apiToDb                    execute_api → DB row → reconcile
+  └─ dbToApi                    DB row → execute_api → reconcile</div>
+
+      <h2>Repository layout</h2>
+      <pre><code>snapline-python/
+├── packages/
+│   ├── snapline_engine/
+│   ├── snapline_api_adapters/
+│   ├── snapline_auth_adapters/
+│   └── snapline_core/
+├── demo/
+│   ├── shared/           mock server + SQLite
+│   ├── scenarios/        19 scenarios (scenario.py each)
+│   └── run_all/run_all.py
+└── tests/                pytest unit tests</code></pre>
+
+      <h2>Differences from Node</h2>
+      <ul>
+        <li><strong>No build step</strong> — run demos directly with <code>uv run demo</code></li>
+        <li><strong>Async test_suite</strong> — use <code>asyncio.run()</code> or <code>await</code> in async test runners</li>
+        <li><strong>httpx</strong> — HTTP client with 30s default timeout (Node uses fetch + AbortSignal)</li>
+        <li><strong>Same scenario IDs</strong> — all 19 demo ids match the Node repo</li>
+      </ul>
+
+      <footer class="footer">
+        <p><a href="getting-started.html">Getting Started →</a></p>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

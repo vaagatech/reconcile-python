@@ -34,6 +34,32 @@ async def main():
 asyncio.run(main())
 ```
 
+## Fixture-case runners
+
+```python
+import asyncio
+from snapline.core import fixtures_dir, run_api_fixture_cases, resolve_report_config, write_test_report
+
+async def main():
+    result = await run_api_fixture_cases({
+        "suiteName": "Customer account — GraphQL fixture cases",
+        "fixturesRoot": str(fixtures_dir(__file__, {"relativePath": "fixtures"})),
+        "baseUrl": "https://api.example.com",
+        "defaults": {
+            "endpoint": "/graphql",
+            "protocol": "graphql",
+            "dataPath": "customerAccount",
+            "ignoreFields": ["metadata.traceId"],
+        },
+    })
+
+    report_config = resolve_report_config({"defaultOutputPath": "./reports/run.json"})
+    if report_config:
+        write_test_report([result], report_config)
+
+asyncio.run(main())
+```
+
 ## Documentation
 
 Full docs, demos, and integration examples:

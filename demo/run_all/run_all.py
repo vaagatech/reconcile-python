@@ -6,12 +6,13 @@ import sys
 import time
 from pathlib import Path
 
-from snapline.core import write_test_report
+from snapline.core import resolve_report_config, write_test_report
 from snapline.demo_shared import (
+    apply_demo_env,
     close_demo_database,
+    close_mock_server,
     create_demo_database,
     create_mock_server,
-    resolve_report_config,
 )
 from snapline.demo_shared.types import ScenarioContext
 
@@ -24,11 +25,18 @@ SCENARIOS_DIR = Path(__file__).resolve().parent.parent / "scenarios"
 
 
 def _load_scenario(scenario_id: str):
-    scenario_path = SCENARIOS_DIR / scenario_id / "scenario.py"
-    spec = importlib.util.spec_from_file_location(f"scenario_{scenario_id}", scenario_path)
+    scenario_dir = SCENARIOS_DIR / scenario_id
+    scenario_path = scenario_dir / "scenario.py"
+    module_name = f"scenario_{scenario_id.replace('-', '_')}"
+    spec = importlib.util.spec_from_file_location(
+        module_name,
+        scenario_path,
+        submodule_search_locations=[str(scenario_dir)],
+    )
     if spec is None or spec.loader is None:
         raise ImportError(f"Unable to load scenario: {scenario_id}")
     module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
     spec.loader.exec_module(module)
     return module.scenario
 
@@ -47,6 +55,7 @@ async def main() -> int:
     print(f"\nMock API + GraphQL server listening at {server_handle.base_url}")
 
     database = create_demo_database()
+    apply_demo_env(server_handle.base_url)
     report_config = resolve_report_config()
     started_at = time.time() * 1000
 
@@ -56,7 +65,16 @@ async def main() -> int:
         results = []
         for scenario_id in SCENARIO_ORDER:
             scenario = _load_scenario(scenario_id)
-            results.append(await scenario.run(context))
+            try:
+                results.append(await scenario.run(context))
+            except Exception as exc:
+                results.append(
+                    {
+                        "name": scenario.name,
+                        "passed": False,
+                        "results": [{"step": "run", "passed": False, "message": str(exc)}],
+                    }
+                )
 
         duration_ms = int(time.time() * 1000 - started_at)
         passed = sum(1 for result in results if result["passed"])
@@ -83,7 +101,7 @@ async def main() -> int:
         return 1 if failed > 0 else 0
     finally:
         close_demo_database(database)
-        server_handle.server.shutdown()
+        close_mock_server(server_handle)
 
 
 if __name__ == "__main__":

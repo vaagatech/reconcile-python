@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import html
 import json
 import random
 import re
+import threading
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -14,12 +16,14 @@ from snapline.api_adapters import build_soap_envelope
 from .demo_domain import demo_domain, volatile_pincode, volatile_trace_id
 from .graphql_schema import _to_iso_string, execute_demo_graphql
 
-PORT = 3847
+MAX_BODY_BYTES = 1_048_576
+PORT = 0
 
 
 @dataclass
 class MockServerHandle:
     server: HTTPServer
+    thread: threading.Thread
     base_url: str
 
 
@@ -30,9 +34,14 @@ class _MockHandler(BaseHTTPRequestHandler):
         return
 
     def _read_body(self) -> str:
-        length = int(self.headers.get("Content-Length", 0))
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+        except ValueError:
+            length = 0
         if length <= 0:
             return ""
+        if length > MAX_BODY_BYTES:
+            raise ValueError("Request body too large")
         return self.rfile.read(length).decode("utf-8")
 
     def _send_json(self, status: int, payload: Any) -> None:
@@ -111,7 +120,7 @@ class _MockHandler(BaseHTTPRequestHandler):
         if path == "/soap/user":
             body = self._read_body()
             email_match = re.search(r"<email>([^<]+)</email>", body, flags=re.IGNORECASE)
-            email = email_match.group(1) if email_match else demo_domain.email
+            email = html.escape(email_match.group(1) if email_match else demo_domain.email)
 
             response_xml = build_soap_envelope(
                 f"<GetUserResponse><email>{email}</email>"
@@ -179,6 +188,13 @@ class _MockHandler(BaseHTTPRequestHandler):
 def create_mock_server() -> MockServerHandle:
     server = HTTPServer(("127.0.0.1", PORT), _MockHandler)
     server.socket.settimeout(30)
-    thread = __import__("threading").Thread(target=server.serve_forever, daemon=True)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
-    return MockServerHandle(server=server, base_url=f"http://127.0.0.1:{PORT}")
+    host, port = server.server_address
+    return MockServerHandle(server=server, thread=thread, base_url=f"http://{host}:{port}")
+
+
+def close_mock_server(handle: MockServerHandle) -> None:
+    handle.server.shutdown()
+    handle.server.server_close()
+    handle.thread.join(timeout=5)

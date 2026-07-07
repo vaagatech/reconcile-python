@@ -4,24 +4,11 @@ import json
 from typing import Any
 from urllib.parse import urlencode, urlparse, urlunparse, parse_qsl
 
-import httpx
-
 from snapline.engine import load_json_file
 
+from ..http_client import default_fetch, fetch_with_timeout
 from ..resolve_url import resolve_url
 from ..types import ApiExecuteContext, ApiExecuteResult, RestApiConfig
-
-
-def _default_fetch(
-    url: str,
-    *,
-    method: str = "GET",
-    headers: dict[str, str] | None = None,
-    content: str | bytes | None = None,
-    data: str | bytes | None = None,
-) -> httpx.Response:
-    body = content if content is not None else data
-    return httpx.request(method, url, headers=headers, content=body)
 
 
 def execute_rest(
@@ -31,8 +18,10 @@ def execute_rest(
     ctx = context or {}
     base_url = ctx.get("baseUrl")
     auth_headers = ctx.get("authHeaders", {})
-    fetch_impl = ctx.get("fetchImpl") or _default_fetch
+    fetch_impl = fetch_with_timeout(ctx.get("fetchImpl"), ctx.get("timeoutMs"))
     input_from_row = ctx.get("inputFromRow")
+    block_private = ctx.get("blockPrivateNetworks", False)
+    block_metadata = ctx.get("blockMetadataHosts", True)
 
     endpoint = config["endpoint"]
     method = config.get("method") or "GET"
@@ -40,7 +29,12 @@ def execute_rest(
     body = config.get("body")
     headers = config.get("headers") or {}
 
-    url = resolve_url(endpoint, base_url)
+    url = resolve_url(
+        endpoint,
+        base_url,
+        block_private_networks=block_private,
+        block_metadata_hosts=block_metadata,
+    )
     payload: Any = body
 
     if input_file:

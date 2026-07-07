@@ -18,6 +18,13 @@ def seed_db(connection_string: str, rows: list[DbRow]) -> None:
     _db_registry[connection_string] = rows
 
 
+def clear_db_seeds(connection_string: str | None = None) -> None:
+    if connection_string is None:
+        _db_registry.clear()
+        return
+    _db_registry.pop(connection_string, None)
+
+
 def create_db_connection(dialect: str, connection_string: str) -> DbConnection:
     seed = _db_registry.get(connection_string, [])
     return DbConnection(dialect, connection_string, seed)
@@ -50,4 +57,5 @@ __all__ = [
     "exec_sqlite_file",
     "exec_sqlite_sql",
     "seed_db",
+    "clear_db_seeds",
 ]

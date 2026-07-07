@@ -1,27 +1,15 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
-import httpx
-
 from snapline.engine import load_json_file
 
+from ..http_client import fetch_with_timeout
 from ..resolve_url import resolve_url
 from ..types import ApiExecuteContext, ApiExecuteResult, GraphqlApiConfig
-
-
-def _default_fetch(
-    url: str,
-    *,
-    method: str = "GET",
-    headers: dict[str, str] | None = None,
-    content: str | bytes | None = None,
-    data: str | bytes | None = None,
-) -> httpx.Response:
-    body = content if content is not None else data
-    return httpx.request(method, url, headers=headers, content=body)
 
 
 def _load_query(config: GraphqlApiConfig) -> str:
@@ -59,8 +47,10 @@ def execute_graphql(
     ctx = context or {}
     base_url = ctx.get("baseUrl")
     auth_headers = ctx.get("authHeaders", {})
-    fetch_impl = ctx.get("fetchImpl") or _default_fetch
+    fetch_impl = fetch_with_timeout(ctx.get("fetchImpl"), ctx.get("timeoutMs"))
     input_from_row = ctx.get("inputFromRow")
+    block_private = ctx.get("blockPrivateNetworks", False)
+    block_metadata = ctx.get("blockMetadataHosts", True)
 
     query = _load_query(config)
     variables: dict[str, Any] = dict(config.get("variables") or {})
@@ -72,7 +62,12 @@ def execute_graphql(
     if input_from_row:
         variables = {**variables, **input_from_row}
 
-    url = resolve_url(config["endpoint"], base_url)
+    url = resolve_url(
+        config["endpoint"],
+        base_url,
+        block_private_networks=block_private,
+        block_metadata_hosts=block_metadata,
+    )
     response = fetch_impl(
         url,
         method="POST",

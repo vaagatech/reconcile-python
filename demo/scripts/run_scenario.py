@@ -36,11 +36,18 @@ def print_list() -> None:
 
 
 def _load_scenario(scenario_id: str):
-    scenario_path = SCENARIOS_DIR / scenario_id / "scenario.py"
-    spec = importlib.util.spec_from_file_location(f"scenario_{scenario_id}", scenario_path)
+    scenario_dir = SCENARIOS_DIR / scenario_id
+    scenario_path = scenario_dir / "scenario.py"
+    module_name = f"scenario_{scenario_id.replace('-', '_')}"
+    spec = importlib.util.spec_from_file_location(
+        module_name,
+        scenario_path,
+        submodule_search_locations=[str(scenario_dir)],
+    )
     if spec is None or spec.loader is None:
         raise ImportError(f"Unable to load scenario: {scenario_id}")
     module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
     spec.loader.exec_module(module)
     return module.scenario
 

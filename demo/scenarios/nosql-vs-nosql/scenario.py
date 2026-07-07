@@ -1,24 +1,9 @@
 from __future__ import annotations
 
 from snapline.core import nosql, test_suite
-from snapline.demo_shared import DEMO_EMAIL
 from snapline.demo_shared.types import ScenarioContext
 
-SOURCE_CUSTOMER = {
-    "customerId": "cust_1",
-    "email": DEMO_EMAIL,
-    "status": "ACTIVE",
-    "tier": "gold",
-    "profile": {"role": "admin", "department": "engineering"},
-}
-
-TARGET_SNAPSHOT = {
-    "customerId": "cust_1",
-    "email": DEMO_EMAIL,
-    "status": "ACTIVE",
-    "tier": "gold",
-    "profile": {"role": "admin", "department": "engineering"},
-}
+from .demo_data import DEMO_EMAIL, source_customer, target_snapshot
 
 
 class Scenario:
@@ -30,8 +15,8 @@ class Scenario:
         source_store = nosql.memory()
         target_store = nosql.memory()
 
-        nosql.seed(source_store, "customers", [SOURCE_CUSTOMER])
-        nosql.seed(target_store, "customer_snapshots", [TARGET_SNAPSHOT])
+        nosql.seed(source_store, "customers", [source_customer])
+        nosql.seed(target_store, "customer_snapshots", [target_snapshot])
 
         return await test_suite(
             self.name,

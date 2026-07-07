@@ -47,16 +47,24 @@ async def test_suite(name: str, config: TestSuiteConfig | dict[str, Any]) -> Tes
 
     auth_headers: dict[str, str] = {}
     if auth_adapter:
-        auth_result = await auth_adapter.initialize()
-        auth_headers = auth_result["headers"]
-        results.append(
-            {
-                "step": "auth",
-                "passed": True,
-                "token": "[redacted]" if auth_result.get("token") else None,
-            }
-        )
-        print("  ✓ auth initialized")
+        try:
+            auth_result = await auth_adapter.initialize()
+            auth_headers = auth_result["headers"]
+            results.append(
+                {
+                    "step": "auth",
+                    "passed": True,
+                    "token": "[redacted]" if auth_result.get("token") else None,
+                }
+            )
+            print("  ✓ auth initialized")
+        except Exception as exc:
+            fail()
+            results.append({"step": "auth", "passed": False, "message": str(exc)})
+            print(f"  ✗ auth failed: {exc}")
+            summary = "FAILED"
+            print(f"\n❌ {name}: {summary}\n")
+            return {"name": name, "passed": False, "results": results}
 
     if api:
         expected_file = api.get("expectedFile")

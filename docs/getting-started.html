@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Getting Started — Snapline (Python)</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <a class="brand" href="index.html">Snapline</a>
+      <span class="brand-sub">Python · snapline-core</span>
+      <nav class="nav">
+        <div class="nav-section">Documentation</div>
+        <a href="index.html">Overview</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="getting-started.html" class="active">Getting Started</a>
+        <a href="guide.html">End-to-End Guide</a>
+        <a href="demos.html">Demo Scenarios</a>
+        <a href="reference.html">API Reference</a>
+        <div class="nav-section">Links</div>
+        <a href="https://github.com/vaagatech/snapline-python">GitHub</a>
+        <a href="https://pypi.org/project/snapline-core/">PyPI</a>
+        <a href="https://github.com/vaagatech/snapline">Node.js version</a>
+      </nav>
+    </aside>
+    <main class="content">
+      <header class="hero">
+        <h1>Getting Started</h1>
+        <p class="lead">Set up integration testing in a new Python project in about five minutes.</p>
+      </header>
+
+      <h2>1. Install</h2>
+      <pre><code>pip install snapline-core</code></pre>
+      <p>Or clone the monorepo for demos and development:</p>
+      <pre><code>git clone https://github.com/vaagatech/snapline-python.git
+cd snapline-python
+uv sync</code></pre>
+
+      <h2>2. Project layout</h2>
+      <pre><code>my_app_integration_tests/
+├── fixtures/
+│   ├── input.json
+│   └── expected.json
+├── tests/
+│   └── test_user_sync.py
+└── pyproject.toml</code></pre>
+
+      <h2>3. Fixtures</h2>
+      <p><code>fixtures/expected.json</code></p>
+      <pre><code>{
+  "email": "alice@example.com",
+  "status": "synced",
+  "currentdate": "VALID_DATE"
+}</code></pre>
+
+      <h2>4. First test</h2>
+      <pre><code>import asyncio
+import os
+from snapline.core import auth, test_suite
+
+async def main():
+    base_url = os.environ.get("API_BASE_URL", "https://your-api.com")
+    result = await test_suite("User sync — API vs fixture", {
+        "auth": auth.oauth2({
+            "tokenUrl": f"{base_url}/oauth/token",
+            "clientId": os.environ["CLIENT_ID"],
+            "clientSecret": os.environ["CLIENT_SECRET"],
+        }),
+        "baseUrl": base_url,
+        "api": {
+            "endpoint": "/api/v1/user/sync",
+            "method": "POST",
+            "inputFile": "fixtures/input.json",
+            "expectedFile": "fixtures/expected.json",
+            "ignoreFields": ["pincode"],
+            "transformations": {
+                "currentdate": lambda v, _k, _p: (
+                    "VALID_DATE" if isinstance(v, str) and v else "INVALID_DATE"
+                ),
+            },
+        },
+    })
+    raise SystemExit(0 if result["passed"] else 1)
+
+if __name__ == "__main__":
+    asyncio.run(main())</code></pre>
+
+      <h2>5. Run</h2>
+      <pre><code>API_BASE_URL=https://staging.your-api.com \
+CLIENT_ID=... CLIENT_SECRET=... \
+python tests/test_user_sync.py</code></pre>
+
+      <h2>Run the repo demo (19 scenarios)</h2>
+      <pre><code>uv run demo              # all 19 scenarios
+uv run demo-list         # list ids
+uv run demo-run api-vs-file-graphql
+python demo/run_all/run_all.py</code></pre>
+
+      <h2>Unit tests (maintainers)</h2>
+      <pre><code>uv sync
+pytest tests -q</code></pre>
+
+      <div class="callout">
+        <strong>Next:</strong> <a href="guide.html">End-to-End Guide</a> for all test modes, fixture cases, and CI reports.
+      </div>
+
+      <footer class="footer">
+        <p><a href="guide.html">End-to-End Guide →</a></p>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

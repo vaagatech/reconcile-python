@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from snapline.core import api, test_suite
-from snapline.demo_shared import fixtures_dir
+from snapline.core import api, fixtures_dir, test_suite
 from snapline.demo_shared.types import ScenarioContext
 
 
@@ -11,9 +10,9 @@ class Scenario:
     needs_database = False
 
     async def run(self, context: ScenarioContext) -> dict:
-        fixtures = fixtures_dir(__file__)
+        fixtures = fixtures_dir(__file__, {"relativePath": "fixtures"})
         return await test_suite(
-            "8. API vs file (SOAP)",
+            self.name,
             {
                 "baseUrl": context.base_url,
                 "api": {

@@ -3,14 +3,9 @@ from __future__ import annotations
 from typing import Any
 from urllib.parse import urlencode
 
-import httpx
+from snapline.api_adapters.http_client import default_fetch as _default_fetch
 
 from .auth_adapter import AuthAdapter
-
-
-def _default_fetch(url: str, *, method: str = "GET", headers=None, content=None, data=None):
-    body = content if content is not None else data
-    return httpx.request(method, url, headers=headers, content=body)
 
 
 class OAuth2Adapter(AuthAdapter[dict[str, Any]]):
@@ -41,7 +36,8 @@ class OAuth2Adapter(AuthAdapter[dict[str, Any]]):
 
         if response.status_code >= 400:
             raise RuntimeError(
-                f"OAuth2 token request failed ({response.status_code}): {response.text}"
+                f"OAuth2 token request failed ({response.status_code}): "
+                f"{response.text[:200]}"
             )
 
         payload = response.json()

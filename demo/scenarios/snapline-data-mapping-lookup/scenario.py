@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from snapline.demo_shared import fixtures_dir, run_reconcile_fixture_cases, status_mapping_lookup
+from snapline.core import fixtures_dir, run_snapline_fixture_cases
 from snapline.demo_shared.types import ScenarioContext
 
-wrong_status_lookup = {"status": {"ACTIVE": "WRONG"}}
+from .demo_data import status_lookup, wrong_status_lookup
 
 
 class Scenario:
@@ -12,13 +12,13 @@ class Scenario:
     needs_database = False
 
     async def run(self, context: ScenarioContext) -> dict:
-        return await run_reconcile_fixture_cases(
+        return await run_snapline_fixture_cases(
             {
                 "suiteName": self.name,
-                "fixturesRoot": str(fixtures_dir(__file__)),
+                "fixturesRoot": str(fixtures_dir(__file__, {"relativePath": "fixtures"})),
                 "presets": {
                     "dataMapping": {
-                        "warehouseStatus": status_mapping_lookup,
+                        "warehouseStatus": status_lookup,
                         "wrongStatus": wrong_status_lookup,
                     }
                 },

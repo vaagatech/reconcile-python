@@ -35,3 +35,6 @@ def reconcile(
         "expected": expected,
         "diff": comparison["diff"],
     }
+
+
+snapline = reconcile

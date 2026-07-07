@@ -26,6 +26,16 @@ def parse_soap_body(xml: str) -> dict[str, Any]:
     return result
 
 
+def escape_xml(value: str) -> str:
+    return (
+        value.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+        .replace("'", "&apos;")
+    )
+
+
 def build_soap_envelope(body_inner_xml: str) -> str:
     return (
         '<?xml version="1.0" encoding="UTF-8"?>'

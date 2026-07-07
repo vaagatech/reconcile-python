@@ -1,14 +1,10 @@
 from __future__ import annotations
 
 from snapline.core import api, test_suite
-from snapline.demo_shared import (
-    app_customer_join_query,
-    create_demo_auth,
-    db_plan_mapping,
-    db_status_mapping,
-    DEMO_EMAIL,
-)
 from snapline.demo_shared.types import ScenarioContext
+
+from .auth import create_auth
+from .demo_data import DEMO_EMAIL, app_customer_join_query, db_plan_mapping, db_status_mapping
 
 
 class Scenario:
@@ -20,7 +16,7 @@ class Scenario:
         return await test_suite(
             self.name,
             {
-                "auth": create_demo_auth(context.base_url),
+                "auth": create_auth(),
                 "baseUrl": context.base_url,
                 "dbToApi": {
                     "db": {

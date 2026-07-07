@@ -1,17 +1,17 @@
 from __future__ import annotations
 
-from snapline.demo_shared import (
-    create_demo_auth,
+from snapline.core import fixtures_dir, run_api_fixture_cases
+from snapline.demo_shared.types import ScenarioContext
+
+from .auth import create_auth
+from .demo_data import (
     date_field_transforms,
-    fixtures_dir,
     graphql_account_transforms,
     graphql_plan_mapping,
     graphql_snapshot_transforms,
     graphql_status_mapping,
     role_tier_only_transforms,
-    run_api_fixture_cases,
 )
-from snapline.demo_shared.types import ScenarioContext
 
 
 class Scenario:
@@ -23,12 +23,16 @@ class Scenario:
         return await run_api_fixture_cases(
             {
                 "suiteName": self.name,
-                "fixturesRoot": str(fixtures_dir(__file__)),
+                "fixturesRoot": str(fixtures_dir(__file__, {"relativePath": "fixtures"})),
                 "baseUrl": context.base_url,
-                "auth": create_demo_auth(context.base_url),
+                "auth": create_auth(),
                 "defaults": {
                     "endpoint": "/graphql",
                     "protocol": "graphql",
+                    "dataPath": "customerAccount",
+                    "ignoreFields": ["metadata.traceId", "metadata.syncedAt"],
+                    "transformations": "graphqlAccount",
+                    "dataMapping": "graphqlAccount",
                 },
                 "presets": {
                     "transformations": {

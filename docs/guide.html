@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>End-to-End Guide — Snapline (Python)</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <a class="brand" href="index.html">Snapline</a>
+      <span class="brand-sub">Python · snapline-core</span>
+      <nav class="nav">
+        <div class="nav-section">Documentation</div>
+        <a href="index.html">Overview</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="getting-started.html">Getting Started</a>
+        <a href="guide.html" class="active">End-to-End Guide</a>
+        <a href="demos.html">Demo Scenarios</a>
+        <a href="reference.html">API Reference</a>
+        <div class="nav-section">Links</div>
+        <a href="https://github.com/vaagatech/snapline-python">GitHub</a>
+        <a href="https://pypi.org/project/snapline-core/">PyPI</a>
+        <a href="https://github.com/vaagatech/snapline">Node.js version</a>
+      </nav>
+    </aside>
+    <main class="content">
+      <header class="hero">
+        <h1>End-to-End Guide</h1>
+        <p class="lead">Complete workflow for Python: test modes, reconciliation, fixture cases, cross-system tests, and reports. Config keys use camelCase to match Node.js.</p>
+      </header>
+
+      <h2>Test modes</h2>
+      <table>
+        <thead><tr><th>Goal</th><th>Config key</th></tr></thead>
+        <tbody>
+          <tr><td>API vs JSON file</td><td><code>api</code></td></tr>
+          <tr><td>DB vs DB</td><td><code>dbComparison</code></td></tr>
+          <tr><td>API vs DB row</td><td><code>apiToDb</code></td></tr>
+          <tr><td>DB row vs API</td><td><code>dbToApi</code></td></tr>
+        </tbody>
+      </table>
+
+      <h2>Reconciliation</h2>
+      <pre><code>from snapline.engine import reconcile
+
+result = reconcile(live_data, expected_data, {
+    "ignoreFields": ["metadata.traceId"],
+    "transformations": {
+        "role": lambda v, _k, _p: str(v).upper(),
+    },
+    "dataMapping": {
+        "status": {"synced": "SYNCED"},
+    },
+})
+print(result["match"], result.get("diff"))</code></pre>
+
+      <h2>API vs file</h2>
+      <h3>REST</h3>
+      <pre><code>import asyncio
+from snapline.core import auth, test_suite
+
+async def main():
+    await test_suite("REST snapshot", {
+        "baseUrl": "https://api.example.com",
+        "auth": auth.oauth2({
+            "tokenUrl": "https://api.example.com/oauth/token",
+            "clientId": "id", "clientSecret": "secret",
+        }),
+        "api": {
+            "endpoint": "/api/v1/user/sync",
+            "method": "POST",
+            "inputFile": "fixtures/input.json",
+            "expectedFile": "fixtures/expected.json",
+        },
+    })
+
+asyncio.run(main())</code></pre>
+
+      <h3>GraphQL</h3>
+      <pre><code>from snapline.core import api, test_suite
+
+await test_suite("GraphQL snapshot", {
+    "baseUrl": "https://api.example.com",
+    "api": {
+        **api.graphql({
+            "endpoint": "/graphql",
+            "queryFile": "fixtures/query.graphql",
+            "variablesFile": "fixtures/variables.json",
+            "dataPath": "customerAccount",
+        }),
+        "expectedFile": "fixtures/expected.json",
+    },
+})</code></pre>
+
+      <h3>SOAP</h3>
+      <pre><code>await test_suite("SOAP snapshot", {
+    "baseUrl": "https://api.example.com",
+    "api": {
+        **api.soap({
+            "endpoint": "/soap/user",
+            "soapAction": "GetUser",
+            "inputFile": "fixtures/request.xml",
+        }),
+        "expectedFile": "fixtures/expected.json",
+    },
+})</code></pre>
+
+      <h2>Database comparison</h2>
+      <pre><code>from snapline.core import db, test_suite
+
+await test_suite("Warehouse sync", {
+    "dbComparison": {
+        "sourceDb": db.postgres(os.environ["SOURCE_DATABASE_URL"]),
+        "targetDb": db.mysql(os.environ["TARGET_DATABASE_URL"]),
+        "query": "SELECT status, email FROM users WHERE email = :email",
+        "params": {"email": "alice@example.com"},
+        "dataMapping": {"status": {"ABC": "CBA"}},
+    },
+})</code></pre>
+
+      <h2>Cross-system</h2>
+      <pre><code>from snapline.core import api, db, test_suite
+
+await test_suite("API matches DB", {
+    "baseUrl": "https://api.example.com",
+    "apiToDb": {
+        "api": api.rest({
+            "endpoint": "/users/profile?email=alice@example.com",
+            "method": "GET",
+        }),
+        "db": {
+            "db": db.postgres(os.environ["DATABASE_URL"]),
+            "query": "SELECT email, status FROM users WHERE email = :email",
+            "params": {"email": "alice@example.com"},
+        },
+    },
+})</code></pre>
+
+      <h2>Fixture cases</h2>
+      <pre><code>import asyncio
+from snapline.core import fixtures_dir, run_api_fixture_cases
+
+async def main():
+    result = await run_api_fixture_cases({
+        "suiteName": "GraphQL fixture cases",
+        "fixturesRoot": str(fixtures_dir(__file__, relative_path="../fixtures")),
+        "baseUrl": os.environ["API_BASE_URL"],
+        "defaults": {
+            "endpoint": "/graphql",
+            "protocol": "graphql",
+            "dataPath": "customerAccount",
+        },
+    })
+    raise SystemExit(0 if result["passed"] else 1)</code></pre>
+
+      <p>Offline cases:</p>
+      <pre><code>from snapline.core import run_snapline_fixture_cases
+
+await run_snapline_fixture_cases({
+    "suiteName": "Transformations — offline",
+    "fixturesRoot": str(fixtures_dir(__file__)),
+})</code></pre>
+
+      <h2>Reports</h2>
+      <pre><code>from snapline.core import resolve_report_config, write_test_report
+
+result = await test_suite("User sync", {...})
+config = resolve_report_config({"defaultOutputPath": "reports/run.json"})
+if config:
+    write_test_report([result], config)</code></pre>
+      <pre><code>REPORT_FORMAT=html REPORT_OUTPUT=reports/demo.html uv run demo
+REPORT_REDACT_FIELDS=data,processed uv run demo</code></pre>
+
+      <h2>Scenario modules (demo pattern)</h2>
+      <p>Each demo scenario is a <code>scenario.py</code> with a <code>Scenario</code> class:</p>
+      <pre><code>class Scenario:
+    id = "api-vs-file-rest"
+    name = "API vs file (REST + OAuth2)"
+    needs_server = True
+
+    async def run(self, ctx):
+        return await test_suite(self.name, {...})</code></pre>
+      <p>Copy <code>demo/scenarios/&lt;id&gt;/</code> into your project as a template.</p>
+
+      <footer class="footer">
+        <p><a href="demos.html">Demo Scenarios →</a> · <a href="reference.html">API Reference →</a></p>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

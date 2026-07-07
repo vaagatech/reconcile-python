@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-from snapline.core import test_suite
-from snapline.demo_shared import create_demo_auth, date_transform, fixtures_dir
+from snapline.core import fixtures_dir, test_suite
 from snapline.demo_shared.types import ScenarioContext
+
+from .auth import create_auth
+from .demo_data import date_transform
 
 
 class Scenario:
@@ -11,11 +13,11 @@ class Scenario:
     needs_database = False
 
     async def run(self, context: ScenarioContext) -> dict:
-        fixtures = fixtures_dir(__file__)
+        fixtures = fixtures_dir(__file__, {"relativePath": "fixtures"})
         return await test_suite(
             self.name,
             {
-                "auth": create_demo_auth(context.base_url),
+                "auth": create_auth(),
                 "baseUrl": context.base_url,
                 "api": {
                     "endpoint": "/api/v1/user/sync",

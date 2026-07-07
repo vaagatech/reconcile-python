@@ -1,13 +1,9 @@
 from __future__ import annotations
 
-from snapline.demo_shared import (
-    date_field_transforms,
-    enrichment_transforms,
-    fixtures_dir,
-    role_tier_only_transforms,
-    run_reconcile_fixture_cases,
-)
+from snapline.core import fixtures_dir, run_snapline_fixture_cases
 from snapline.demo_shared.types import ScenarioContext
+
+from .demo_data import date_field_transforms, enrichment_transforms, role_tier_only_transforms
 
 
 class Scenario:
@@ -16,10 +12,10 @@ class Scenario:
     needs_database = False
 
     async def run(self, context: ScenarioContext) -> dict:
-        return await run_reconcile_fixture_cases(
+        return await run_snapline_fixture_cases(
             {
                 "suiteName": self.name,
-                "fixturesRoot": str(fixtures_dir(__file__)),
+                "fixturesRoot": str(fixtures_dir(__file__, {"relativePath": "fixtures"})),
                 "presets": {
                     "transformations": {
                         "enrichment": enrichment_transforms,

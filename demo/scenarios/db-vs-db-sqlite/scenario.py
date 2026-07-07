@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from snapline.core import test_suite
-from snapline.demo_shared import (
+from snapline.demo_shared.types import ScenarioContext
+
+from .demo_data import (
     DEMO_EMAIL,
     status_mapping_lookup,
     warehouse_customer_join_query,
@@ -9,7 +11,6 @@ from snapline.demo_shared import (
     warehouse_order_join_query,
     warehouse_order_status_mapping,
 )
-from snapline.demo_shared.types import ScenarioContext
 
 
 class Scenario:
