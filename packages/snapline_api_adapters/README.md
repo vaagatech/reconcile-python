@@ -24,6 +24,4 @@ print(response)
 
 ## Documentation
 
-Full docs and protocol examples:
-
-https://github.com/vaagatech/snapline-python
+**https://vaagatech.github.io/snapline-python/** · [Node.js docs](https://vaagatech.github.io/snapline/)

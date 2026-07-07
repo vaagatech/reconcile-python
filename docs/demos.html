@@ -10,7 +10,7 @@
   <div class="layout">
     <aside class="sidebar">
       <a class="brand" href="index.html">Snapline</a>
-      <span class="brand-sub">Python · snapline-core</span>
+      <span class="brand-sub">by <a href="https://www.vaagatech.com">VaagaTech</a> · Python</span>
       <nav class="nav">
         <div class="nav-section">Documentation</div>
         <a href="index.html">Overview</a>
@@ -19,16 +19,22 @@
         <a href="guide.html">End-to-End Guide</a>
         <a href="demos.html" class="active">Demo Scenarios</a>
         <a href="reference.html">API Reference</a>
+        <div class="nav-section">VaagaTech</div>
+        <a href="https://www.vaagatech.com" target="_blank" rel="noopener noreferrer">vaagatech.com</a>
         <div class="nav-section">Links</div>
         <a href="https://github.com/vaagatech/snapline-python">GitHub</a>
         <a href="https://pypi.org/project/snapline-core/">PyPI</a>
         <a href="https://github.com/vaagatech/snapline">Node.js version</a>
       </nav>
+      <div class="sidebar-company">
+        Built by <a href="https://www.vaagatech.com" target="_blank" rel="noopener noreferrer">VaagaTech</a>.
+        Visit <a href="https://www.vaagatech.com" target="_blank" rel="noopener noreferrer">www.vaagatech.com</a> for engineering services and open-source products.
+      </div>
     </aside>
     <main class="content">
       <header class="hero">
         <h1>Demo Scenarios</h1>
-        <p class="lead">19 integration scenarios with the same IDs as the Node.js repo. No build step — run directly with uv or python.</p>
+        <p class="lead">21 integration scenarios with the same IDs as the Node.js repo. No build step — run directly with uv or python.</p>
       </header>
 
       <h2>Commands</h2>
@@ -38,7 +44,7 @@ uv run demo-list
 uv run demo-run api-vs-file-graphql
 python demo/run_all/run_all.py</code></pre>
 
-      <h2>All 19 scenarios</h2>
+      <h2>All 21 scenarios</h2>
       <table>
         <thead><tr><th>#</th><th>ID</th><th>Mode</th><th>Highlights</th></tr></thead>
         <tbody>
@@ -46,7 +52,7 @@ python demo/run_all/run_all.py</code></pre>
           <tr><td>2</td><td><code>snapline-transformations</code></td><td>Fixture cases</td><td>Offline transformation failures</td></tr>
           <tr><td>3</td><td><code>snapline-data-mapping-lookup</code></td><td>Fixture cases</td><td>Lookup dataMapping</td></tr>
           <tr><td>4</td><td><code>db-vs-db-sqlite</code></td><td>DB ↔ DB</td><td>linkKeys, multi-table</td></tr>
-          <tr><td>5</td><td><code>db-vs-db-cross-dialect</code></td><td>DB ↔ DB</td><td>seed_db stubs</td></tr>
+          <tr><td>5</td><td><code>db-vs-db-cross-dialect</code></td><td>DB ↔ DB</td><td>demo <code>seed_db</code> stubs</td></tr>
           <tr><td>6</td><td><code>nosql-vs-nosql</code></td><td>NoSQL</td><td>Document stores</td></tr>
           <tr><td>7</td><td><code>snapline-data-mapping-function</code></td><td>Fixture + DB</td><td>Function mapper</td></tr>
           <tr><td>8</td><td><code>db-comparison-transformations</code></td><td>DB ↔ DB</td><td>Date transforms</td></tr>
@@ -55,9 +61,13 @@ python demo/run_all/run_all.py</code></pre>
           <tr><td>11</td><td><code>api-vs-file-rest-cases</code></td><td>Fixture cases</td><td>REST multi-case</td></tr>
           <tr><td>12</td><td><code>api-vs-file-graphql</code></td><td>Fixture cases</td><td>7 GraphQL cases</td></tr>
           <tr><td>13</td><td><code>api-vs-file-soap</code></td><td>API ↔ file</td><td>SOAP</td></tr>
-          <tr><td>14–19</td><td><code>api-vs-db-*</code>, <code>db-vs-api-*</code></td><td>Cross-system</td><td>REST, GraphQL, SOAP</td></tr>
+          <tr><td>14–19</td><td><code>api-vs-db-*</code>, <code>db-vs-api-*</code></td><td>Cross-system</td><td>REST, GraphQL, SOAP vs demo SQLite</td></tr>
+          <tr><td>20</td><td><code>project-graphql</code></td><td>Fixture cases</td><td>Sample GraphQL app (Auth0/Okta pattern)</td></tr>
+          <tr><td>21</td><td><code>project-db</code></td><td>Warehouse</td><td>Chunked SQL→NoSQL via <code>run_warehouse_comparison</code></td></tr>
         </tbody>
       </table>
+
+      <p>Published <code>snapline-core</code> depends only on <code>httpx</code> and does not ship SQL drivers. Demos use <code>snapline.demo_shared</code> for SQLite and in-memory stubs.</p>
 
       <h2>Scenario layout</h2>
       <pre><code>demo/scenarios/api-vs-file-graphql/
@@ -72,6 +82,7 @@ python demo/run_all/run_all.py</code></pre>
 
       <footer class="footer">
         <p><a href="reference.html">API Reference →</a></p>
+        <p class="footer-muted">Snapline by <a href="https://www.vaagatech.com" target="_blank" rel="noopener noreferrer">VaagaTech</a> · <a href="https://www.vaagatech.com" target="_blank" rel="noopener noreferrer">www.vaagatech.com</a> · MIT License</p>
       </footer>
     </main>
   </div>

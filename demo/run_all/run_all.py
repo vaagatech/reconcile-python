@@ -16,10 +16,7 @@ from snapline.demo_shared import (
 )
 from snapline.demo_shared.types import ScenarioContext
 
-SCRIPTS_DIR = Path(__file__).resolve().parent.parent / "scripts"
-sys.path.insert(0, str(SCRIPTS_DIR))
-
-from scenario_registry import SCENARIO_ORDER, validate_scenario_registry
+from snapline.demo_shared.scenario_registry import DOCS_URL, SCENARIO_ORDER, validate_scenario_registry
 
 SCENARIOS_DIR = Path(__file__).resolve().parent.parent / "scenarios"
 
@@ -49,6 +46,7 @@ async def main() -> int:
     print("═══════════════════════════════════════════════════════")
     print(f"  {len(SCENARIO_ORDER)} scenarios · uv run demo-list to browse")
     print("  uv run demo-run <id> to run one scenario from root")
+    print(f"  Docs: {DOCS_URL}")
     print("═══════════════════════════════════════════════════════")
 
     server_handle = create_mock_server()

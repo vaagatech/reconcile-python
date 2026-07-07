@@ -5,7 +5,7 @@ import sqlite3
 from pathlib import Path
 from typing import Any
 
-from ..types import DbRow
+from snapline.core.types import DbRow
 
 
 def _normalize_named_params(query: str) -> str:
@@ -13,6 +13,8 @@ def _normalize_named_params(query: str) -> str:
 
 
 class SqliteConnection:
+    """Demo-only SQLite adapter — not part of snapline-core."""
+
     def __init__(self, database: sqlite3.Connection) -> None:
         self._database = database
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TypedDict
+from typing import Any, Mapping, Optional, TypedDict, Union
 
 
 class FixturesDirOptions(TypedDict, total=False):
@@ -12,6 +12,9 @@ def module_dir(file: str) -> Path:
     return Path(file).resolve().parent
 
 
-def fixtures_dir(file: str, options: FixturesDirOptions | None = None) -> Path:
+def fixtures_dir(
+    file: str,
+    options: FixturesDirOptions | Mapping[str, str] | None = None,
+) -> Path:
     relative_path = (options or {}).get("relativePath", "../fixtures")
     return module_dir(file) / relative_path

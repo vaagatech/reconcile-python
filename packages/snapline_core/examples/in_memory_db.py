@@ -3,19 +3,14 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from ..types import DbDialect, DbRow
+from snapline.core.types import DbRow
 
 
-class DbConnection:
-    def __init__(
-        self,
-        dialect: DbDialect,
-        connection_string: str,
-        rows: list[DbRow] | None = None,
-    ) -> None:
-        self.dialect = dialect
-        self.connection_string = connection_string
-        self._rows = list(rows or [])
+class InMemoryDb:
+    """Minimal DbConnectionLike for package examples — not shipped as a driver."""
+
+    def __init__(self, rows: list[DbRow]) -> None:
+        self._rows = list(rows)
 
     async def query(self, query: str, params: dict[str, Any] | None = None) -> list[DbRow]:
         normalized = re.sub(r"\s+", " ", query).strip().lower()

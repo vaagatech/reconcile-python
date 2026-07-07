@@ -12,10 +12,17 @@ import asyncio
 import importlib.util
 import sys
 from pathlib import Path
+from typing import List, Optional
 
 from snapline.demo_shared import bootstrap_scenario
 
-from scenario_registry import SCENARIO_META, SCENARIO_ORDER, validate_scenario_registry
+from snapline.demo_shared.scenario_registry import (
+    DOCS_URL,
+    NODE_DOCS_URL,
+    SCENARIO_META,
+    SCENARIO_ORDER,
+    validate_scenario_registry,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCENARIOS_DIR = REPO_ROOT / "demo" / "scenarios"
@@ -33,6 +40,8 @@ def print_list() -> None:
         modes = ", ".join(meta["modes"])
         print(f"  {index:2}. {scenario_id:<32} [{flags or 'standalone'}] {modes}")
     print("\nRun all: uv run demo")
+    print(f"\nDocumentation: {DOCS_URL}")
+    print(f"Node.js docs:  {NODE_DOCS_URL}")
 
 
 def _load_scenario(scenario_id: str):
@@ -61,7 +70,7 @@ async def run_one(scenario_id: str) -> int:
     return await bootstrap_scenario(scenario)
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="Run Snapline demo scenarios")
     parser.add_argument("scenario_id", nargs="?", help="Scenario id to run")
     parser.add_argument("--list", "-l", action="store_true", help="List scenarios")

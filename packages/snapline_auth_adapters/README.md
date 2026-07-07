@@ -24,6 +24,4 @@ asyncio.run(main())
 
 ## Documentation
 
-Full docs and auth examples:
-
-https://github.com/vaagatech/snapline-python
+**https://vaagatech.github.io/snapline-python/** · [Node.js docs](https://vaagatech.github.io/snapline/)

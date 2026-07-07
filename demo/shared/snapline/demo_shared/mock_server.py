@@ -15,6 +15,7 @@ from snapline.api_adapters import build_soap_envelope
 
 from .demo_domain import demo_domain, volatile_pincode, volatile_trace_id
 from .graphql_schema import _to_iso_string, execute_demo_graphql
+from .project_graphql_schema import execute_project_graphql
 
 MAX_BODY_BYTES = 1_048_576
 PORT = 0
@@ -57,15 +58,29 @@ class _MockHandler(BaseHTTPRequestHandler):
         path = parsed.path
 
         if path == "/oauth/token":
-            self._read_body()
-            self._send_json(
-                200,
-                {
-                    "access_token": "mock-oauth-token-abc123",
-                    "token_type": "Bearer",
-                    "expires_in": 3600,
-                },
-            )
+            body = self._read_body()
+            grant_type = "client_credentials"
+            audience = None
+            if body:
+                from urllib.parse import parse_qs
+
+                params = parse_qs(body)
+                grant_type = params.get("grant_type", [grant_type])[0]
+                audience = params.get("audience", [None])[0]
+
+            if grant_type != "client_credentials":
+                self._send_json(400, {"error": "unsupported_grant_type"})
+                return
+
+            payload: dict[str, Any] = {
+                "access_token": "mock-oauth-token-abc123",
+                "token_type": "Bearer",
+                "expires_in": 3600,
+                "scope": "read:graphql write:graphql",
+            }
+            if audience:
+                payload["audience"] = audience
+            self._send_json(200, payload)
             return
 
         if path == "/api/v1/user/sync":
@@ -109,6 +124,31 @@ class _MockHandler(BaseHTTPRequestHandler):
             query = parsed_body.get("query", "")
             variables = parsed_body.get("variables", {})
             result = execute_demo_graphql(query, variables)
+
+            if result.get("errors"):
+                self._send_json(400, {"errors": result["errors"]})
+                return
+
+            self._send_json(200, {"data": result.get("data")})
+            return
+
+        if path == "/project/graphql":
+            body = self._read_body()
+            auth_header = self.headers.get("Authorization", "")
+            if not auth_header.startswith("Bearer "):
+                self._send_json(401, {"errors": [{"message": "Unauthorized"}]})
+                return
+
+            try:
+                parsed_body = json.loads(body) if body else {}
+            except json.JSONDecodeError:
+                self._send_json(400, {"errors": [{"message": "Invalid JSON"}]})
+                return
+
+            result = execute_project_graphql(
+                parsed_body.get("query", ""),
+                parsed_body.get("variables", {}),
+            )
 
             if result.get("errors"):
                 self._send_json(400, {"errors": result["errors"]})
@@ -186,7 +226,8 @@ class _MockHandler(BaseHTTPRequestHandler):
 
 
 def create_mock_server() -> MockServerHandle:
-    server = HTTPServer(("127.0.0.1", PORT), _MockHandler)
+    handler: type[BaseHTTPRequestHandler] = _MockHandler
+    server = HTTPServer(("127.0.0.1", PORT), handler)
     server.socket.settimeout(30)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()

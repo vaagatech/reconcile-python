@@ -7,7 +7,7 @@ from snapline.auth_adapters import AuthAdapter
 from snapline.engine.types import DataMappingMap, DiffResult, ReconcileOptions, TransformationMap
 
 DbRow = dict[str, Any]
-DbDialect = Literal["postgres", "mysql", "sqlite"]
+DbDialect = Literal["postgres", "mysql"]
 
 
 class DbConnectionLike(Protocol):

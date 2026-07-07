@@ -1,8 +1,10 @@
 # Snapline (Python)
 
-Declarative Snapshot and Reconciliation Testing for Python.
+[![docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://vaagatech.github.io/snapline-python/)
 
-📖 **[Full documentation (GitHub Pages)](https://vaagatech.github.io/snapline-python/)**
+Declarative Snapshot and Reconciliation Testing for Python — an open-source product by [VaagaTech](https://www.vaagatech.com) ([www.vaagatech.com](https://www.vaagatech.com)).
+
+📖 **[Full documentation (GitHub Pages)](https://vaagatech.github.io/snapline-python/)** · [Node.js edition](https://vaagatech.github.io/snapline/)
 
 | Page | Description |
 |------|-------------|
@@ -10,7 +12,7 @@ Declarative Snapshot and Reconciliation Testing for Python.
 | [Architecture](https://vaagatech.github.io/snapline-python/architecture.html) | Packages, Node parity, repo layout |
 | [Getting Started](https://vaagatech.github.io/snapline-python/getting-started.html) | 5-minute setup |
 | [End-to-End Guide](https://vaagatech.github.io/snapline-python/guide.html) | Complete usage workflow |
-| [Demo Scenarios](https://vaagatech.github.io/snapline-python/demos.html) | 19 integration scenarios |
+| [Demo Scenarios](https://vaagatech.github.io/snapline-python/demos.html) | 21 integration scenarios |
 | [API Reference](https://vaagatech.github.io/snapline-python/reference.html) | Exports and config |
 
 ## Install
@@ -31,13 +33,13 @@ cd snapline-python
 uv sync
 ```
 
-## Run the full integration demo (19 scenarios)
+## Run the full integration demo (21 scenarios)
 
 ```bash
 cd snapline-python
 uv sync
 
-uv run demo              # build not required — run all 19 scenarios
+uv run demo              # run all 21 scenarios
 uv run demo-list         # list scenario ids
 uv run demo-run api-vs-file-graphql   # one scenario (mock API/DB auto-started)
 python run_demo.py       # alternative entry point
@@ -64,7 +66,7 @@ REPORT_FORMAT=html REPORT_OUTPUT=reports/demo.html uv run demo
 - `test_suite`, `fixtures_dir`, `module_dir`
 - `run_api_fixture_cases`, `run_snapline_fixture_cases`
 - `resolve_report_config`, `write_test_report`
-- `reconcile`, `snapline`, DB/NoSQL helpers
+- `reconcile`, `snapline`, `DbConnectionLike`, NoSQL helpers
 
 ## Quick start
 
@@ -98,8 +100,9 @@ asyncio.run(main())
 - Test modes: API↔file, DB↔DB, API↔DB, DB↔API in one `test_suite`
 - Protocols: REST, GraphQL, SOAP
 - Auth: Basic, OAuth2 client credentials, OpenID (token/idToken/assertion)
-- DB: real SQLite + stub postgres/mysql with `seed_db`
+- DB: implement `DbConnectionLike` with your Postgres/MySQL driver (demos use `snapline.demo_shared` for SQLite stubs)
 - NoSQL: in-memory document stores with `linkKeys`
-- Reporting: JSON, HTML, text
+- Reporting: JSON, HTML, text, streamed JSONL (`create_stream_report_writer`)
+- Warehouse: `run_warehouse_comparison` for chunked SQL→NoSQL consistency
 - Fixture-case runners: `run_api_fixture_cases`, `run_snapline_fixture_cases`
-- 19 integration demo scenarios with mock server and fixture cases (same IDs as Node.js)
+- 21 integration demo scenarios with mock server and fixture cases (same IDs as Node.js)

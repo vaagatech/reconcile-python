@@ -25,6 +25,6 @@ print(result["match"])
 
 ## Documentation
 
-Full docs, demos, and the rest of the Snapline Python packages:
+**https://vaagatech.github.io/snapline-python/** · [Node.js docs](https://vaagatech.github.io/snapline/)
 
-https://github.com/vaagatech/snapline-python
+Repository: https://github.com/vaagatech/snapline-python

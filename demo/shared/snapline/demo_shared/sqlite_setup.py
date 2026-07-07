@@ -3,8 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from snapline.core import db
-from snapline.core.db.sqlite_connection import SqliteConnection
+from .stub_db import db
+from .sqlite_connection import SqliteConnection
 
 from .demo_domain import demo_domain
 

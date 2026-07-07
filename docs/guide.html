@@ -10,7 +10,7 @@
   <div class="layout">
     <aside class="sidebar">
       <a class="brand" href="index.html">Snapline</a>
-      <span class="brand-sub">Python · snapline-core</span>
+      <span class="brand-sub">by <a href="https://www.vaagatech.com">VaagaTech</a> · Python</span>
       <nav class="nav">
         <div class="nav-section">Documentation</div>
         <a href="index.html">Overview</a>
@@ -19,11 +19,17 @@
         <a href="guide.html" class="active">End-to-End Guide</a>
         <a href="demos.html">Demo Scenarios</a>
         <a href="reference.html">API Reference</a>
+        <div class="nav-section">VaagaTech</div>
+        <a href="https://www.vaagatech.com" target="_blank" rel="noopener noreferrer">vaagatech.com</a>
         <div class="nav-section">Links</div>
         <a href="https://github.com/vaagatech/snapline-python">GitHub</a>
         <a href="https://pypi.org/project/snapline-core/">PyPI</a>
         <a href="https://github.com/vaagatech/snapline">Node.js version</a>
       </nav>
+      <div class="sidebar-company">
+        Built by <a href="https://www.vaagatech.com" target="_blank" rel="noopener noreferrer">VaagaTech</a>.
+        Visit <a href="https://www.vaagatech.com" target="_blank" rel="noopener noreferrer">www.vaagatech.com</a> for engineering services and open-source products.
+      </div>
     </aside>
     <main class="content">
       <header class="hero">
@@ -108,12 +114,17 @@ await test_suite("GraphQL snapshot", {
 })</code></pre>
 
       <h2>Database comparison</h2>
-      <pre><code>from snapline.core import db, test_suite
+      <p>Implement <code>DbConnectionLike</code> with your SQL driver, or use the in-memory example from <code>packages/snapline_core/examples/in_memory_db.py</code>.</p>
+      <pre><code>from snapline.core.examples.in_memory_db import InMemoryDb
+from snapline.core import test_suite
+
+source_db = InMemoryDb([{"status": "ABC", "email": "alice@example.com"}])
+target_db = InMemoryDb([{"status": "CBA", "email": "alice@example.com"}])
 
 await test_suite("Warehouse sync", {
     "dbComparison": {
-        "sourceDb": db.postgres(os.environ["SOURCE_DATABASE_URL"]),
-        "targetDb": db.mysql(os.environ["TARGET_DATABASE_URL"]),
+        "sourceDb": source_db,
+        "targetDb": target_db,
         "query": "SELECT status, email FROM users WHERE email = :email",
         "params": {"email": "alice@example.com"},
         "dataMapping": {"status": {"ABC": "CBA"}},
@@ -121,7 +132,10 @@ await test_suite("Warehouse sync", {
 })</code></pre>
 
       <h2>Cross-system</h2>
-      <pre><code>from snapline.core import api, db, test_suite
+      <pre><code>from snapline.core import api, test_suite
+from snapline.core.examples.in_memory_db import InMemoryDb
+
+app_db = InMemoryDb([{"email": "alice@example.com", "status": "SYNCED"}])
 
 await test_suite("API matches DB", {
     "baseUrl": "https://api.example.com",
@@ -131,11 +145,29 @@ await test_suite("API matches DB", {
             "method": "GET",
         }),
         "db": {
-            "db": db.postgres(os.environ["DATABASE_URL"]),
+            "db": app_db,
             "query": "SELECT email, status FROM users WHERE email = :email",
             "params": {"email": "alice@example.com"},
         },
     },
+})</code></pre>
+
+      <h2>Warehouse comparison (SQL → NoSQL)</h2>
+      <p>For multi-table ETL into a document store, use <code>run_warehouse_comparison</code> — see demo <code>project-db</code>.</p>
+      <pre><code>from snapline.core import nosql, run_warehouse_comparison
+
+await run_warehouse_comparison({
+    "suiteName": "Warehouse sync",
+    "sourceDb": source_db,
+    "targetDb": nosql.memory(),
+    "tables": [{
+        "id": "wh_customers",
+        "sourceQuery": "SELECT customer_id AS customerId, email FROM wh_customers",
+        "targetCollection": "customers",
+        "linkKeys": {"customerId": "customerId"},
+    }],
+    "chunkSize": 50,
+    "report": {"outputPath": "./reports/warehouse.jsonl", "format": "jsonl"},
 })</code></pre>
 
       <h2>Fixture cases</h2>
@@ -186,6 +218,7 @@ REPORT_REDACT_FIELDS=data,processed uv run demo</code></pre>
 
       <footer class="footer">
         <p><a href="demos.html">Demo Scenarios →</a> · <a href="reference.html">API Reference →</a></p>
+        <p class="footer-muted">Snapline by <a href="https://www.vaagatech.com" target="_blank" rel="noopener noreferrer">VaagaTech</a> · <a href="https://www.vaagatech.com" target="_blank" rel="noopener noreferrer">www.vaagatech.com</a> · MIT License</p>
       </footer>
     </main>
   </div>

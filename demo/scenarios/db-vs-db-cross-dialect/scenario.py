@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from snapline.core import db, seed_db, test_suite
+from snapline.demo_shared import db, seed_db
+from snapline.core import test_suite
 from snapline.demo_shared.types import ScenarioContext
 
 from .demo_data import (

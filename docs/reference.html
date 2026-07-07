@@ -10,7 +10,7 @@
   <div class="layout">
     <aside class="sidebar">
       <a class="brand" href="index.html">Snapline</a>
-      <span class="brand-sub">Python · snapline-core</span>
+      <span class="brand-sub">by <a href="https://www.vaagatech.com">VaagaTech</a> · Python</span>
       <nav class="nav">
         <div class="nav-section">Documentation</div>
         <a href="index.html">Overview</a>
@@ -19,11 +19,17 @@
         <a href="guide.html">End-to-End Guide</a>
         <a href="demos.html">Demo Scenarios</a>
         <a href="reference.html" class="active">API Reference</a>
+        <div class="nav-section">VaagaTech</div>
+        <a href="https://www.vaagatech.com" target="_blank" rel="noopener noreferrer">vaagatech.com</a>
         <div class="nav-section">Links</div>
         <a href="https://github.com/vaagatech/snapline-python">GitHub</a>
         <a href="https://pypi.org/project/snapline-core/">PyPI</a>
         <a href="https://github.com/vaagatech/snapline">Node.js version</a>
       </nav>
+      <div class="sidebar-company">
+        Built by <a href="https://www.vaagatech.com" target="_blank" rel="noopener noreferrer">VaagaTech</a>.
+        Visit <a href="https://www.vaagatech.com" target="_blank" rel="noopener noreferrer">www.vaagatech.com</a> for engineering services and open-source products.
+      </div>
     </aside>
     <main class="content">
       <header class="hero">
@@ -58,13 +64,27 @@ api.rest({...})
 api.graphql({...})
 api.soap({...})</code></pre>
 
-      <h2>Database</h2>
-      <pre><code>from snapline.core import db, seed_db, create_sqlite_connection
+      <h2>Database connection contract</h2>
+      <p>Published packages do <strong>not</strong> ship SQL drivers. Implement <code>DbConnectionLike</code> with your Postgres/MySQL client:</p>
+      <pre><code>from snapline.core.types import DbConnectionLike
 
-db.postgres(url)
-db.mysql(url)
-db.sqlite(path)
-seed_db(dsn, rows)</code></pre>
+class AppDb(DbConnectionLike):
+    async def query(self, sql: str, params: dict | None = None) -> list[dict]:
+        # your pg/mysql driver here
+        return rows</code></pre>
+      <p>Demos use <code>snapline.demo_shared</code> for SQLite and in-memory stubs (<code>create_sqlite_connection</code>, <code>seed_db</code>, <code>db.postgres/mysql/sqlite</code>). See <code>packages/snapline_core/examples/in_memory_db.py</code> for a minimal stub you can copy.</p>
+
+      <h2>Warehouse comparison</h2>
+      <pre><code>from snapline.core import run_warehouse_comparison, nosql, create_stream_report_writer
+
+await run_warehouse_comparison({
+    "sourceDb": source_db,           # DbConnectionLike — your SQL warehouse
+    "targetStore": nosql.memory(),   # DocumentStoreLike — e.g. MongoDB adapter
+    "tables": [...],                 # WarehouseTableSpec list
+    "chunkSize": 50,
+    "report": {"outputPath": "./reports/warehouse.jsonl"},
+})</code></pre>
+      <p><code>create_stream_report_writer</code> appends JSONL events without holding the full dataset in memory.</p>
 
       <h2>NoSQL</h2>
       <pre><code>from snapline.core import nosql
@@ -109,6 +129,7 @@ module_dir(__file__)</code></pre>
 
       <footer class="footer">
         <p><a href="index.html">← Overview</a></p>
+        <p class="footer-muted">Snapline by <a href="https://www.vaagatech.com" target="_blank" rel="noopener noreferrer">VaagaTech</a> · <a href="https://www.vaagatech.com" target="_blank" rel="noopener noreferrer">www.vaagatech.com</a> · MIT License</p>
       </footer>
     </main>
   </div>

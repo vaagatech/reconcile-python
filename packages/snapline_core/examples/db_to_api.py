@@ -1,13 +1,14 @@
 """Database vs API reconciliation example."""
 import asyncio
 
-from snapline.core import api, db, seed_db, test_suite
+from snapline.core import api, test_suite
+
+from .in_memory_db import InMemoryDb
 
 
 async def main() -> None:
-    seed_db(
-        "postgresql://localhost:5432/app",
-        [{"email": "alice@example.com", "status": "SYNCED", "role": "member"}],
+    app_db = InMemoryDb(
+        [{"email": "alice@example.com", "status": "SYNCED", "role": "member"}]
     )
 
     await test_suite(
@@ -16,7 +17,7 @@ async def main() -> None:
             "baseUrl": "https://api.example.com",
             "dbToApi": {
                 "db": {
-                    "db": db.postgres("postgresql://localhost:5432/app"),
+                    "db": app_db,
                     "query": "SELECT email, status, role FROM users WHERE email = :email",
                     "params": {"email": "alice@example.com"},
                 },

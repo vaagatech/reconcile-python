@@ -1,0 +1,11 @@
+{
+  "pythonVersion": "3.10",
+  "include": ["packages", "demo", "tests"],
+  "extraPaths": [
+    "packages/snapline_core",
+    "packages/snapline_engine",
+    "packages/snapline_api_adapters",
+    "packages/snapline_auth_adapters",
+    "demo/shared"
+  ]
+}

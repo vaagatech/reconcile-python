@@ -3,3 +3,7 @@
 dist/
 build/
 *.egg-info/
+reports
+demo/reports/
+demo/run-all/reports/
+demo/scenarios/*/reports/

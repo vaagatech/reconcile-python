@@ -18,7 +18,9 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/vaagatech/snapline-python"
+Documentation = "https://vaagatech.github.io/snapline-python/"
 Repository = "https://github.com/vaagatech/snapline-python"
+Issues = "https://github.com/vaagatech/snapline-python/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["snapline"]

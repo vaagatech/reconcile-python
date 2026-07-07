@@ -6,17 +6,8 @@ from snapline.engine.types import ReconcileOptions, SnaplineOptions, SnaplineRes
 from .api_config.to_api_request_config import to_api_request_config
 from .cross_system.run_api_to_db import run_api_to_db
 from .cross_system.run_db_to_api import run_db_to_api
-from .db import (
-    SqliteConnection,
-    clear_db_seeds,
-    create_sqlite_connection,
-    db,
-    exec_sqlite_file,
-    exec_sqlite_sql,
-    seed_db,
-)
-from .db.db_connection import DbConnection
 from .db_comparison.run_db_comparison import run_db_comparison
+from .db_comparison.run_warehouse_comparison import run_warehouse_comparison
 from .fixtures import (
     DEFAULT_FIXTURE_LAYOUT,
     FixtureCaseDefaults,
@@ -36,13 +27,17 @@ from .reporting.redact_fields import redact_fields, redact_suite_results
 from .reporting.resolve_report_config import resolve_report_config
 from .reporting.types import ReportConfig, ReportFormat, TestRunReport, TestRunReportMeta
 from .reporting.write_report import build_report, render_report, write_test_report
+from .reporting.stream_report import create_stream_report_writer, StreamReportWriter
 from .test_suite import test_suite
+from .types import DbConnectionLike, DbDialect, DbRow
 
 execute_api_request = execute_api
 
 __all__ = [
     "AuthAdapter",
-    "DbConnection",
+    "DbConnectionLike",
+    "DbDialect",
+    "DbRow",
     "DEFAULT_FIXTURE_LAYOUT",
     "FixtureCaseDefaults",
     "FixtureCaseMeta",
@@ -54,19 +49,14 @@ __all__ = [
     "ResolvedFixtureLayout",
     "RunApiFixtureCasesOptions",
     "RunSnaplineFixtureCasesOptions",
-    "SqliteConnection",
     "TestRunReport",
     "TestRunReportMeta",
     "api",
     "assert_against_file",
     "auth",
     "build_report",
-    "create_sqlite_connection",
-    "db",
     "execute_api",
     "execute_api_request",
-    "exec_sqlite_file",
-    "exec_sqlite_sql",
     "fixtures_dir",
     "InMemoryDocumentStore",
     "load_json_file",
@@ -82,14 +72,15 @@ __all__ = [
     "run_api_fixture_cases",
     "run_api_to_db",
     "run_db_comparison",
+    "run_warehouse_comparison",
     "run_db_to_api",
     "run_snapline_fixture_cases",
-    "seed_db",
-    "clear_db_seeds",
     "snapline",
     "SnaplineOptions",
     "SnaplineResult",
     "test_suite",
     "to_api_request_config",
+    "create_stream_report_writer",
+    "StreamReportWriter",
     "write_test_report",
 ]

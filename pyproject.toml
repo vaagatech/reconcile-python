@@ -7,6 +7,11 @@ license = "MIT"
 requires-python = ">=3.10"
 authors = [{ name = "VaagaTech", email = "info@vaagatech.com" }]
 
+[project.urls]
+Documentation = "https://vaagatech.github.io/snapline-python/"
+Repository = "https://github.com/vaagatech/snapline-python"
+Issues = "https://github.com/vaagatech/snapline-python/issues"
+
 [tool.uv.workspace]
 members = [
     "packages/snapline_engine",
@@ -17,7 +22,18 @@ members = [
 ]
 
 [dependency-groups]
-dev = ["pytest>=8.0"]
+dev = ["pytest>=8.0", "graphql-core>=3.2.0"]
+
+[tool.pyright]
+pythonVersion = "3.10"
+include = ["packages", "demo", "tests"]
+extraPaths = [
+    "packages/snapline_core",
+    "packages/snapline_engine",
+    "packages/snapline_api_adapters",
+    "packages/snapline_auth_adapters",
+    "demo/shared",
+]
 
 [tool.uv]
 package = false
