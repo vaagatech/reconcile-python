@@ -10,6 +10,7 @@ from .api_config.to_api_request_config import to_api_request_config
 from .cross_system.run_api_to_db import run_api_to_db
 from .cross_system.run_db_to_api import run_db_to_api
 from .db_comparison.run_db_comparison import run_db_comparison
+from .reporting.stream_report import create_stream_report_writer
 from .types import TestStepResult, TestSuiteConfig, TestSuiteResult
 
 
@@ -35,6 +36,13 @@ async def test_suite(name: str, config: TestSuiteConfig | dict[str, Any]) -> Tes
     db_to_api = config.get("dbToApi")
     base_url = config.get("baseUrl")
     fetch_impl = config.get("fetchImpl")
+    stream_report = config.get("streamReport")
+
+    writer = (
+        create_stream_report_writer(stream_report["outputPath"], stream_report.get("redactFields"))
+        if stream_report and stream_report.get("outputPath")
+        else None
+    )
 
     results: list[TestStepResult] = []
     passed = True
@@ -138,6 +146,23 @@ async def test_suite(name: str, config: TestSuiteConfig | dict[str, Any]) -> Tes
         result = await run_db_to_api(db_to_api, auth_headers, base_url, fetch_impl)
         results.append({"step": "db-to-api", "passed": result["match"], **result})
         _log_step_result("db-to-api reconciliation passed", result["match"], result["diff"], fail)
+
+    if writer:
+        from datetime import datetime, timezone
+
+        for step in results:
+            writer.write({"type": "step", "suiteName": name, **step})
+        path = writer.finalize(
+            {
+                "type": "summary",
+                "suiteName": name,
+                "mode": "test-suite",
+                "passed": passed,
+                "steps": len(results),
+                "at": datetime.now(timezone.utc).isoformat(),
+            }
+        )
+        print(f"  Stream report: {path}")
 
     summary = "PASSED" if passed else "FAILED"
     print(f"\n{'✅' if passed else '❌'} {name}: {summary}\n")

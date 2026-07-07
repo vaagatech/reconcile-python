@@ -4,11 +4,17 @@ from typing import Any, TypedDict
 
 from snapline.engine.types import DataMappingMap, TransformationMap
 
+from ..reporting.stream_report_options import StreamReportOptions
+
 
 class WarehouseTableSpec(TypedDict, total=False):
     id: str
     sourceQuery: str
     sourceParams: dict[str, Any]
+    sourceCollection: str
+    sourceFilter: dict[str, Any]
+    targetQuery: str
+    targetParams: dict[str, Any]
     targetCollection: str
     linkKeys: dict[str, str]
     ignoreFields: list[str]
@@ -16,10 +22,8 @@ class WarehouseTableSpec(TypedDict, total=False):
     dataMapping: DataMappingMap
 
 
-class WarehouseStreamReportOptions(TypedDict, total=False):
-    outputPath: str
+class WarehouseStreamReportOptions(StreamReportOptions, total=False):
     format: str
-    redactFields: list[str]
 
 
 class RunWarehouseComparisonOptions(TypedDict, total=False):

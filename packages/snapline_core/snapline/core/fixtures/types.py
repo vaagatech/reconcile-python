@@ -98,6 +98,7 @@ class RunApiFixtureCasesOptions(TypedDict, total=False):
     timeoutMs: int
     blockPrivateNetworks: bool
     blockMetadataHosts: bool
+    streamReport: dict[str, Any]
 
 
 class RunSnaplineFixtureCasesOptions(TypedDict, total=False):
@@ -107,3 +108,4 @@ class RunSnaplineFixtureCasesOptions(TypedDict, total=False):
     defaults: FixtureCaseDefaults
     presets: FixtureCasePresetMaps
     caseIds: list[str]
+    streamReport: dict[str, Any]

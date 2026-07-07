@@ -9,6 +9,7 @@ from snapline.engine import assert_against_file, load_json_file
 from snapline.engine.io.safe_path import assert_within_root
 
 from ..api_config.to_api_request_config import to_api_request_config
+from ..reporting.stream_report import create_stream_report_writer
 from ..types import TestStepResult, TestSuiteResult
 from .fixture_layout import case_file_path, resolve_fixture_layout
 from .resolve_fixture_snapline_options import resolve_fixture_snapline_options
@@ -135,12 +136,20 @@ async def run_api_fixture_cases(
     defaults = options.get("defaults") or {}
     presets = options.get("presets") or {}
     case_ids = options.get("caseIds")
+    stream_report = options.get("streamReport")
 
     cases_dir = (layout or {}).get("casesDir", "cases")
     cases_root = fixtures_root / cases_dir
     ids = case_ids or _discover_case_ids(cases_root, fixtures_root)
     results: list[TestStepResult] = []
     passed = True
+    writer = (
+        create_stream_report_writer(stream_report["outputPath"], stream_report.get("redactFields"))
+        if stream_report and stream_report.get("outputPath")
+        else None
+    )
+    cases_passed = 0
+    cases_failed = 0
 
     print(f"\n▶ {suite_name}")
 
@@ -182,6 +191,7 @@ async def run_api_fixture_cases(
 
         if response["status"] != expected_status:
             passed = False
+            cases_failed += 1
             results.append(
                 {
                     "step": case_id,
@@ -190,28 +200,127 @@ async def run_api_fixture_cases(
                     "data": response["data"],
                 }
             )
+            if writer:
+                writer.write(
+                    {
+                        "type": "case",
+                        "suiteName": suite_name,
+                        "caseId": case_id,
+                        "name": meta["name"],
+                        "passed": False,
+                        "httpStatus": response["status"],
+                        "expectedStatus": expected_status,
+                    }
+                )
             print(f"  ✗ {meta['name']}")
             print(f"    HTTP {response['status']}")
             continue
 
-        if expected_status != 200:
-            case_passed = not expect_match
+        expected_path = _safe_case_file(case_dir, case_layout["expectedFile"], fixtures_root)
+        has_expected_file = _exists(expected_path)
+
+        if expected_status != 200 and not has_expected_file:
+            cases_passed += 1
+            results.append(
+                {
+                    "step": case_id,
+                    "passed": True,
+                    "message": meta.get("failureType") or f"HTTP {expected_status}",
+                    "data": response["data"],
+                }
+            )
+            if writer:
+                writer.write(
+                    {
+                        "type": "case",
+                        "suiteName": suite_name,
+                        "caseId": case_id,
+                        "name": meta["name"],
+                        "passed": True,
+                        "httpStatus": expected_status,
+                        "failureType": meta.get("failureType"),
+                    }
+                )
+            _log_case_result(
+                meta["name"],
+                True,
+                expect_match,
+                False,
+                None,
+                meta.get("failureType"),
+            )
+            continue
+
+        if expected_status != 200 and has_expected_file:
+            snapline_options = resolve_fixture_snapline_options(meta, defaults, presets)
+            assertion = assert_against_file(response["data"], expected_path, snapline_options)
+            case_passed = assertion["match"] == expect_match
+
+            if meta.get("expectedDiffPath") and not expect_match:
+                diff_path = (assertion.get("diff") or {}).get("path", "")
+                if not diff_path.startswith(meta["expectedDiffPath"]):
+                    passed = False
+                    cases_failed += 1
+                    results.append(
+                        {
+                            "step": case_id,
+                            "passed": False,
+                            "message": (
+                                f"Expected diff at \"{meta['expectedDiffPath']}\", "
+                                f"got \"{diff_path or '(none)'}\""
+                            ),
+                            "diff": assertion.get("diff"),
+                            "processed": assertion.get("processed"),
+                        }
+                    )
+                    if writer:
+                        writer.write(
+                            {
+                                "type": "case",
+                                "suiteName": suite_name,
+                                "caseId": case_id,
+                                "name": meta["name"],
+                                "passed": False,
+                                "httpStatus": expected_status,
+                            }
+                        )
+                    _log_case_result(meta["name"], False, expect_match, assertion["match"], assertion.get("diff"))
+                    continue
+
             if not case_passed:
                 passed = False
+                cases_failed += 1
+            else:
+                cases_passed += 1
+
             results.append(
                 {
                     "step": case_id,
                     "passed": case_passed,
+                    "diff": assertion.get("diff"),
+                    "processed": assertion.get("processed"),
                     "message": meta.get("failureType"),
                     "data": response["data"],
                 }
             )
+            if writer:
+                writer.write(
+                    {
+                        "type": "case",
+                        "suiteName": suite_name,
+                        "caseId": case_id,
+                        "name": meta["name"],
+                        "passed": case_passed,
+                        "httpStatus": expected_status,
+                        "failureType": meta.get("failureType"),
+                    }
+                )
             _log_case_result(
                 meta["name"],
                 case_passed,
                 expect_match,
-                False,
-                None,
+                assertion["match"],
+                None if case_passed else assertion.get("diff"),
                 meta.get("failureType"),
             )
             continue
@@ -245,6 +354,9 @@ async def run_api_fixture_cases(
 
         if not case_passed:
             passed = False
+            cases_failed += 1
+        else:
+            cases_passed += 1
 
         results.append(
             {
@@ -255,6 +367,17 @@ async def run_api_fixture_cases(
                 "message": meta.get("failureType"),
             }
         )
+        if writer:
+            writer.write(
+                {
+                    "type": "case",
+                    "suiteName": suite_name,
+                    "caseId": case_id,
+                    "name": meta["name"],
+                    "passed": case_passed,
+                    "httpStatus": expected_status,
+                }
+            )
         _log_case_result(
             meta["name"],
             case_passed,
@@ -262,6 +385,23 @@ async def run_api_fixture_cases(
             assertion["match"],
             None if case_passed else assertion.get("diff"),
         )
+
+    if writer:
+        from datetime import datetime, timezone
+
+        path = writer.finalize(
+            {
+                "type": "summary",
+                "suiteName": suite_name,
+                "mode": "api-fixture-cases",
+                "total": len(ids),
+                "passed": cases_passed,
+                "failed": cases_failed,
+                "suitePassed": passed,
+                "at": datetime.now(timezone.utc).isoformat(),
+            }
+        )
+        print(f"  Stream report: {path}")
 
     summary = "PASSED" if passed else "FAILED"
     print(f"\n{'✅' if passed else '❌'} {suite_name}: {summary}\n")
@@ -277,12 +417,20 @@ async def run_snapline_fixture_cases(
     defaults = options.get("defaults")
     presets = options.get("presets") or {}
     case_ids = options.get("caseIds")
+    stream_report = options.get("streamReport")
 
     cases_dir = (layout or {}).get("casesDir", "cases")
     cases_root = fixtures_root / cases_dir
     ids = case_ids or _discover_case_ids(cases_root, fixtures_root)
     results: list[TestStepResult] = []
     passed = True
+    writer = (
+        create_stream_report_writer(stream_report["outputPath"], stream_report.get("redactFields"))
+        if stream_report and stream_report.get("outputPath")
+        else None
+    )
+    cases_passed = 0
+    cases_failed = 0
 
     print(f"\n▶ {suite_name}")
 
@@ -305,6 +453,7 @@ async def run_snapline_fixture_cases(
             diff_path = (assertion.get("diff") or {}).get("path", "")
             if not diff_path.startswith(meta["expectedDiffPath"]):
                 passed = False
+                cases_failed += 1
                 results.append(
                     {
                         "step": case_id,
@@ -316,11 +465,25 @@ async def run_snapline_fixture_cases(
                         "diff": assertion.get("diff"),
                     }
                 )
+                if writer:
+                    writer.write(
+                        {
+                            "type": "case",
+                            "suiteName": suite_name,
+                            "caseId": case_id,
+                            "name": meta["name"],
+                            "passed": False,
+                            "mode": "offline",
+                        }
+                    )
                 _log_case_result(meta["name"], False, meta["expectMatch"], assertion["match"], assertion.get("diff"))
                 continue
 
         if not case_passed:
             passed = False
+            cases_failed += 1
+        else:
+            cases_passed += 1
 
         results.append(
             {
@@ -331,6 +494,17 @@ async def run_snapline_fixture_cases(
                 "message": meta.get("failureType"),
             }
         )
+        if writer:
+            writer.write(
+                {
+                    "type": "case",
+                    "suiteName": suite_name,
+                    "caseId": case_id,
+                    "name": meta["name"],
+                    "passed": case_passed,
+                    "mode": "offline",
+                }
+            )
         _log_case_result(
             meta["name"],
             case_passed,
@@ -338,6 +512,23 @@ async def run_snapline_fixture_cases(
             assertion["match"],
             None if case_passed else assertion.get("diff"),
         )
+
+    if writer:
+        from datetime import datetime, timezone
+
+        path = writer.finalize(
+            {
+                "type": "summary",
+                "suiteName": suite_name,
+                "mode": "snapline-fixture-cases",
+                "total": len(ids),
+                "passed": cases_passed,
+                "failed": cases_failed,
+                "suitePassed": passed,
+                "at": datetime.now(timezone.utc).isoformat(),
+            }
+        )
+        print(f"  Stream report: {path}")
 
     summary = "PASSED" if passed else "FAILED"
     print(f"\n{'✅' if passed else '❌'} {suite_name}: {summary}\n")

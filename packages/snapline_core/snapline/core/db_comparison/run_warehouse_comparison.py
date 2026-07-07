@@ -1,30 +1,60 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any, AsyncIterator, Optional
 
 from snapline.engine import reconcile
 
 from ..types import TestStepResult, TestSuiteResult
-from .fetch_store_data import is_document_store
+from .fetch_store_data import fetch_target_row, is_document_store
 from .iterate_source_chunks import iterate_source_chunks
+from .iterate_source_documents import iterate_source_documents
 from .warehouse_types import RunWarehouseComparisonOptions, WarehouseTableSpec
 from ..reporting.stream_report import create_stream_report_writer
 
 
-def _target_filter(source_row: dict[str, Any], link_keys: dict[str, str]) -> dict[str, Any]:
-    return {target_field: source_row[source_field] for target_field, source_field in link_keys.items()}
+def _assert_table_spec(table: WarehouseTableSpec, source_is_doc: bool, target_is_doc: bool) -> None:
+    table_id = table["id"]
+    if source_is_doc and not table.get("sourceCollection"):
+        raise ValueError(f'Table "{table_id}" requires sourceCollection for a document source store')
+    if not source_is_doc and not table.get("sourceQuery"):
+        raise ValueError(f'Table "{table_id}" requires sourceQuery for a SQL source store')
+    if target_is_doc and not table.get("targetCollection"):
+        raise ValueError(f'Table "{table_id}" requires targetCollection for a document target store')
+    if not target_is_doc and not table.get("targetQuery"):
+        raise ValueError(f'Table "{table_id}" requires targetQuery for a SQL target store')
+
+
+def _row_comparison_config(
+    options: RunWarehouseComparisonOptions,
+    table: WarehouseTableSpec,
+) -> dict[str, Any]:
+    return {
+        "sourceDb": options["sourceDb"],
+        "targetDb": options["targetDb"],
+        "sourceQuery": table.get("sourceQuery"),
+        "sourceParams": table.get("sourceParams"),
+        "sourceCollection": table.get("sourceCollection"),
+        "sourceFilter": table.get("sourceFilter"),
+        "targetQuery": table.get("targetQuery"),
+        "targetParams": table.get("targetParams"),
+        "targetCollection": table.get("targetCollection"),
+        "linkKeys": table.get("linkKeys"),
+        "ignoreFields": table.get("ignoreFields", []),
+        "transformations": table.get("transformations", {}),
+        "dataMapping": table.get("dataMapping", {}),
+    }
 
 
 async def _compare_row(
+    options: RunWarehouseComparisonOptions,
     table: WarehouseTableSpec,
     source_row: dict[str, Any],
-    target_db: Any,
 ) -> dict[str, Any]:
+    config = _row_comparison_config(options, table)
+    target_row = await fetch_target_row(config, source_row)
     link_keys = table.get("linkKeys") or {}
-    filt = _target_filter(source_row, link_keys)
-    matches = await target_db.find(table["targetCollection"], filt)
-    target_row = matches[0] if matches else None
+    source_key = next((source_row[field] for field in link_keys.values() if field in source_row), None)
 
     if not target_row:
         return {
@@ -32,8 +62,8 @@ async def _compare_row(
             "tableId": table["id"],
             "rowIndex": 0,
             "passed": False,
-            "sourceKey": next(iter(filt.values()), None),
-            "message": f"No target document in {table['targetCollection']} for {filt}",
+            "sourceKey": source_key,
+            "message": f"No target row for source keys {link_keys}",
         }
 
     result = reconcile(
@@ -51,9 +81,38 @@ async def _compare_row(
         "tableId": table["id"],
         "rowIndex": 0,
         "passed": result["match"],
-        "sourceKey": next(iter(filt.values()), None),
+        "sourceKey": source_key,
         "diff": result.get("diff"),
     }
+
+
+async def _iterate_table_source_rows(
+    options: RunWarehouseComparisonOptions,
+    table: WarehouseTableSpec,
+    table_limit: Optional[int],
+    chunk_size: int,
+) -> AsyncIterator[list[dict[str, Any]]]:
+    source_db = options["sourceDb"]
+
+    if is_document_store(source_db):
+        async for chunk in iterate_source_documents(
+            source_db,
+            table["sourceCollection"],
+            table.get("sourceFilter") or {},
+            chunk_size=chunk_size,
+            max_rows=table_limit,
+        ):
+            yield chunk
+        return
+
+    async for chunk in iterate_source_chunks(
+        source_db,
+        table["sourceQuery"],
+        table.get("sourceParams") or {},
+        chunk_size=chunk_size,
+        max_rows=table_limit,
+    ):
+        yield chunk
 
 
 async def run_warehouse_comparison(
@@ -68,8 +127,11 @@ async def run_warehouse_comparison(
     max_total_rows = options.get("maxTotalRows")
     report = options.get("report")
 
-    if not is_document_store(target_db):
-        raise ValueError("run_warehouse_comparison requires a document store target")
+    source_is_doc = is_document_store(source_db)
+    target_is_doc = is_document_store(target_db)
+
+    for table in tables:
+        _assert_table_spec(table, source_is_doc, target_is_doc)
 
     writer = (
         create_stream_report_writer(report["outputPath"], report.get("redactFields"))
@@ -90,6 +152,9 @@ async def run_warehouse_comparison(
         + (f" maxRowsPerTable={max_rows_per_table}" if max_rows_per_table else "")
         + (f" maxTotalRows={max_total_rows}" if max_total_rows else "")
     )
+    print(
+        f"  source={'document' if source_is_doc else 'sql'} → target={'document' if target_is_doc else 'sql'}"
+    )
 
     for table in tables:
         table_passed = True
@@ -101,16 +166,9 @@ async def run_warehouse_comparison(
         if table_limit is not None and remaining_total is not None:
             table_limit = min(table_limit, remaining_total)
 
-        async for chunk in iterate_source_chunks(
-            source_db,
-            table["sourceQuery"],
-            table.get("sourceParams") or {},
-            chunk_size=chunk_size,
-            max_rows=table_limit,
-        ):
+        async for chunk in _iterate_table_source_rows(options, table, table_limit, chunk_size):
             if remaining_total is not None and remaining_total <= 0:
                 break
-
             if remaining_total is not None and len(chunk) > remaining_total:
                 chunk = chunk[:remaining_total]
 
@@ -118,7 +176,7 @@ async def run_warehouse_comparison(
             chunk_failed = 0
 
             for source_row in chunk:
-                row_result = await _compare_row(table, source_row, target_db)
+                row_result = await _compare_row(options, table, source_row)
                 row_result["rowIndex"] = table_rows
                 table_rows += 1
                 rows_compared += 1
