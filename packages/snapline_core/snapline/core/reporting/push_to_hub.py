@@ -62,6 +62,9 @@ def resolve_hub_config(argv: list[str] | None = None) -> dict[str, Any] | None:
         config["project"] = project
     if tags:
         config["tags"] = tags
+    api_key = os.environ.get("SNAPLINE_HUB_API_KEY")
+    if api_key:
+        config["apiKey"] = api_key
     return config
 
 
@@ -83,6 +86,7 @@ def push_test_report_to_hub(
     resolved_label = label or resolved.get("label")
     resolved_project = project or resolved.get("project")
     resolved_tags = tags or resolved.get("tags")
+    api_key = resolved.get("apiKey") or os.environ.get("SNAPLINE_HUB_API_KEY")
     hub_url_normalized = _normalize_hub_url(url)
 
     payload = dict(report)
@@ -94,10 +98,13 @@ def push_test_report_to_hub(
         payload["tags"] = resolved_tags
 
     body = json.dumps(payload).encode("utf-8")
+    headers = {"Content-Type": "application/json"}
+    if api_key:
+        headers["X-Hub-Api-Key"] = api_key
     request = urllib.request.Request(
         f"{hub_url_normalized}/api/reports",
         data=body,
-        headers={"Content-Type": "application/json"},
+        headers=headers,
         method="POST",
     )
 
