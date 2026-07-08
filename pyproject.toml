@@ -17,6 +17,7 @@ members = [
     "packages/snapline_engine",
     "packages/snapline_api_adapters",
     "packages/snapline_auth_adapters",
+    "packages/snapline_messaging_adapters",
     "packages/snapline_core",
     "demo/shared",
 ]
@@ -32,6 +33,7 @@ extraPaths = [
     "packages/snapline_engine",
     "packages/snapline_api_adapters",
     "packages/snapline_auth_adapters",
+    "packages/snapline_messaging_adapters",
     "demo/shared",
 ]
 

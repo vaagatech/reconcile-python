@@ -4,7 +4,7 @@
 
 Declarative Snapshot and Reconciliation Testing for Python — an open-source product by [VaagaTech](https://www.vaagatech.com) ([www.vaagatech.com](https://www.vaagatech.com)).
 
-📖 **[Full documentation (GitHub Pages)](https://vaagatech.github.io/snapline-python/)** · [Node.js edition](https://vaagatech.github.io/snapline/)
+📖 **[Full documentation (GitHub Pages)](https://vaagatech.github.io/snapline-python/)** · [Node.js edition](https://vaagatech.github.io/snapline/) · [Snapline Hub — optional reporting UI](https://vaagatech.github.io/snapline-hub/)
 
 | Page | Description |
 |------|-------------|
@@ -14,6 +14,7 @@ Declarative Snapshot and Reconciliation Testing for Python — an open-source pr
 | [End-to-End Guide](https://vaagatech.github.io/snapline-python/guide.html) | Complete usage workflow |
 | [Demo Scenarios](https://vaagatech.github.io/snapline-python/demos.html) | 21 integration scenarios |
 | [API Reference](https://vaagatech.github.io/snapline-python/reference.html) | Exports and config |
+| [Snapline Hub](https://vaagatech.github.io/snapline-hub/) | Optional reporting UI for test results |
 
 ## Install
 
@@ -49,6 +50,19 @@ Optional report output:
 
 ```bash
 REPORT_FORMAT=html REPORT_OUTPUT=reports/demo.html uv run demo
+```
+
+Optional — push to [Snapline Hub](https://vaagatech.github.io/snapline-hub/) for a centralized test results dashboard:
+
+```bash
+SNAPLINE_HUB_URL=http://localhost:3847 uv run demo
+```
+
+```python
+from snapline.core import build_report, push_test_report_to_hub
+
+report = build_report([result], {"durationMs": 1200})
+push_test_report_to_hub(report, hub_url="http://localhost:3847")
 ```
 
 ## Packages

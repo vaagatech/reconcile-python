@@ -9,6 +9,7 @@ from snapline.engine import assert_against_file
 from .api_config.to_api_request_config import to_api_request_config
 from .cross_system.run_api_to_db import run_api_to_db
 from .cross_system.run_db_to_api import run_db_to_api
+from .cross_system.run_publish_and_poll import run_publish_and_poll
 from .db_comparison.run_db_comparison import run_db_comparison
 from .reporting.stream_report import create_stream_report_writer
 from .types import TestStepResult, TestSuiteConfig, TestSuiteResult
@@ -34,6 +35,7 @@ async def test_suite(name: str, config: TestSuiteConfig | dict[str, Any]) -> Tes
     db_comparison = config.get("dbComparison")
     api_to_db = config.get("apiToDb")
     db_to_api = config.get("dbToApi")
+    publish_and_poll = config.get("publishAndPoll")
     base_url = config.get("baseUrl")
     fetch_impl = config.get("fetchImpl")
     stream_report = config.get("streamReport")
@@ -146,6 +148,11 @@ async def test_suite(name: str, config: TestSuiteConfig | dict[str, Any]) -> Tes
         result = await run_db_to_api(db_to_api, auth_headers, base_url, fetch_impl)
         results.append({"step": "db-to-api", "passed": result["match"], **result})
         _log_step_result("db-to-api reconciliation passed", result["match"], result["diff"], fail)
+
+    if publish_and_poll:
+        result = await run_publish_and_poll(publish_and_poll)
+        results.append({"step": "publish-and-poll", "passed": result["match"], **result})
+        _log_step_result("publish-and-poll reconciliation passed", result["match"], result["diff"], fail)
 
     if writer:
         from datetime import datetime, timezone

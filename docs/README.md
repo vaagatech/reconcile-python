@@ -12,6 +12,8 @@ Documentation lives in the `docs/` folder and deploys automatically via `.github
 
 https://vaagatech.github.io/snapline-python/
 
+Related: [Node.js edition](https://vaagatech.github.io/snapline/) · [Snapline Hub](https://github.com/vaagatech/snapline-hub) (optional reporting UI)
+
 ## Local preview
 
 ```bash

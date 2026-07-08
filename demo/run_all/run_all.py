@@ -6,7 +6,7 @@ import sys
 import time
 from pathlib import Path
 
-from snapline.core import resolve_report_config, write_test_report
+from snapline.core import build_report, push_test_report_to_hub, resolve_hub_config, resolve_report_config, write_test_report
 from snapline.demo_shared import (
     apply_demo_env,
     close_demo_database,
@@ -55,6 +55,7 @@ async def main() -> int:
     database = create_demo_database()
     apply_demo_env(server_handle.base_url)
     report_config = resolve_report_config()
+    hub_config = resolve_hub_config()
     started_at = time.time() * 1000
 
     context = ScenarioContext(base_url=server_handle.base_url, database=database)
@@ -95,6 +96,28 @@ async def main() -> int:
                 },
             )
             print(f"\nReport written to {report_path}")
+
+        if hub_config:
+            report = build_report(
+                results,
+                {
+                    "durationMs": duration_ms,
+                    "environment": {
+                        "baseUrl": server_handle.base_url,
+                        "suiteName": "full-demo",
+                    },
+                },
+            )
+            hub_result = push_test_report_to_hub(
+                report,
+                config={
+                    **hub_config,
+                    "label": hub_config.get("label", "Full integration demo (Python)"),
+                    "project": hub_config.get("project", "snapline-demo"),
+                    "tags": hub_config.get("tags", ["python", "demo"]),
+                },
+            )
+            print(f"\nReport pushed to Snapline Hub: {hub_result['url']}")
 
         return 1 if failed > 0 else 0
     finally:

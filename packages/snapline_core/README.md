@@ -111,6 +111,25 @@ asyncio.run(main())
 
 See demo `project-db` for a full SQLite → in-memory example via `snapline.demo_shared`.
 
+### Snapline Hub (optional reporting UI)
+
+Push test results to [Snapline Hub](https://vaagatech.github.io/snapline-hub/) for a centralized dashboard. Hub is **optional** — Snapline works fully without it.
+
+```python
+from snapline.core import build_report, push_test_report_to_hub, resolve_hub_config
+
+report = build_report([result], {"durationMs": 1200})
+push_test_report_to_hub(report, hub_url="http://localhost:3847")
+
+# Or via env / CLI:
+# SNAPLINE_HUB_URL=http://localhost:3847 uv run demo
+hub_config = resolve_hub_config()
+if hub_config:
+    push_test_report_to_hub(report, config=hub_config)
+```
+
+See also: [Node.js edition](https://vaagatech.github.io/snapline/) · [Snapline Hub README](https://vaagatech.github.io/snapline-hub/#readme)
+
 ## Documentation
 
 **https://vaagatech.github.io/snapline-python/**
@@ -118,5 +137,6 @@ See demo `project-db` for a full SQLite → in-memory example via `snapline.demo
 - [Overview](https://vaagatech.github.io/snapline-python/)
 - [End-to-end guide](https://vaagatech.github.io/snapline-python/guide.html)
 - [Node.js edition](https://vaagatech.github.io/snapline/)
+- [Snapline Hub](https://vaagatech.github.io/snapline-hub/) — optional reporting UI
 
 Repository: https://github.com/vaagatech/snapline-python

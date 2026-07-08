@@ -23,6 +23,6 @@ print(result["match"])
 
 ## Documentation
 
-**https://vaagatech.github.io/snapline-python/** · [Node.js docs](https://vaagatech.github.io/snapline/)
+**https://vaagatech.github.io/snapline-python/** · [Node.js docs](https://vaagatech.github.io/snapline/) · [Snapline Hub](https://github.com/vaagatech/snapline-hub)
 
 Repository: https://github.com/vaagatech/snapline-python

@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "snapline-messaging-adapters"
+version = "0.2.2"
+description = "Messaging queue adapters for Snapline — in-memory, Kafka, and custom publishers"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "VaagaTech", email = "info@vaagatech.com" }]
+dependencies = [
+    "snapline-engine==0.2.2",
+]
+
+[project.optional-dependencies]
+kafka = ["aiokafka>=0.10.0"]
+
+[project.urls]
+Homepage = "https://github.com/vaagatech/snapline-python"
+Documentation = "https://vaagatech.github.io/snapline-python/"
+Repository = "https://github.com/vaagatech/snapline-python"
+Issues = "https://github.com/vaagatech/snapline-python/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["snapline"]

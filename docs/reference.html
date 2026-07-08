@@ -25,6 +25,7 @@
         <a href="https://github.com/vaagatech/snapline-python">GitHub</a>
         <a href="https://pypi.org/project/snapline-core/">PyPI</a>
         <a href="https://github.com/vaagatech/snapline">Node.js version</a>
+        <a href="https://vaagatech.github.io/snapline-hub/">Snapline Hub</a>
       </nav>
       <div class="sidebar-company">
         Built by <a href="https://www.vaagatech.com" target="_blank" rel="noopener noreferrer">VaagaTech</a>.
@@ -104,6 +105,8 @@ auth.basic({...})</code></pre>
         <tbody>
           <tr><td><code>resolve_report_config(options)</code></td><td>Parse CLI / env</td></tr>
           <tr><td><code>write_test_report(suites, config, meta=None)</code></td><td>Write report file</td></tr>
+          <tr><td><code>push_test_report_to_hub(report, hub_url=...)</code></td><td>Push report to <a href="https://vaagatech.github.io/snapline-hub/">Snapline Hub</a></td></tr>
+          <tr><td><code>resolve_hub_config(argv=None)</code></td><td>Parse <code>SNAPLINE_HUB_URL</code> / <code>--hub-url</code></td></tr>
           <tr><td><code>redact_fields(data, fields)</code></td><td>Mask sensitive values</td></tr>
           <tr><td><code>redact_suite_results(suites, fields)</code></td><td>Redact all step results</td></tr>
         </tbody>

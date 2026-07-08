@@ -25,6 +25,7 @@
         <a href="https://github.com/vaagatech/snapline-python">GitHub</a>
         <a href="https://pypi.org/project/snapline-core/">PyPI</a>
         <a href="https://github.com/vaagatech/snapline">Node.js version</a>
+        <a href="https://vaagatech.github.io/snapline-hub/">Snapline Hub</a>
       </nav>
       <div class="sidebar-company">
         Built by <a href="https://www.vaagatech.com" target="_blank" rel="noopener noreferrer">VaagaTech</a>.
@@ -205,6 +206,16 @@ if config:
     write_test_report([result], config)</code></pre>
       <pre><code>REPORT_FORMAT=html REPORT_OUTPUT=reports/demo.html uv run demo
 REPORT_REDACT_FIELDS=data,processed uv run demo</code></pre>
+
+      <h3>Snapline Hub (optional)</h3>
+      <p>Push reports to <a href="https://vaagatech.github.io/snapline-hub/">Snapline Hub</a> for a centralized dashboard. Hub is optional — file-based reports above work without it.</p>
+      <pre><code>from snapline.core import build_report, push_test_report_to_hub
+
+report = build_report([result], {"durationMs": 1200})
+push_test_report_to_hub(report, hub_url="http://localhost:3847")
+
+# Or via env:
+# SNAPLINE_HUB_URL=http://localhost:3847 uv run demo</code></pre>
 
       <h2>Scenario modules (demo pattern)</h2>
       <p>Each demo scenario is a <code>scenario.py</code> with a <code>Scenario</code> class:</p>

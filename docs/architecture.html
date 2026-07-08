@@ -25,6 +25,7 @@
         <a href="https://github.com/vaagatech/snapline-python">GitHub</a>
         <a href="https://pypi.org/project/snapline-core/">PyPI</a>
         <a href="https://github.com/vaagatech/snapline">Node.js version</a>
+        <a href="https://vaagatech.github.io/snapline-hub/">Snapline Hub</a>
       </nav>
       <div class="sidebar-company">
         Built by <a href="https://www.vaagatech.com" target="_blank" rel="noopener noreferrer">VaagaTech</a>.
@@ -73,9 +74,13 @@
           <tr><td><code>testSuite()</code></td><td><code>test_suite()</code> (async)</td></tr>
           <tr><td><code>runApiFixtureCases()</code></td><td><code>run_api_fixture_cases()</code></td></tr>
           <tr><td><code>writeTestReport()</code></td><td><code>write_test_report()</code></td></tr>
+          <tr><td><code>pushTestReportToHub()</code></td><td><code>push_test_report_to_hub()</code></td></tr>
           <tr><td><code>ignoreFields</code> in config</td><td><code>ignoreFields</code> (camelCase preserved)</td></tr>
         </tbody>
       </table>
+
+      <h2>Snapline Hub (optional)</h2>
+      <p><a href="https://vaagatech.github.io/snapline-hub/">Snapline Hub</a> is a separate, optional reporting UI for <code>TestRunReport</code> data. Not required for Snapline — use when you want a centralized dashboard. Push via <code>push_test_report_to_hub()</code> or <code>SNAPLINE_HUB_URL</code>. The <a href="https://github.com/vaagatech/snapline">Node.js edition</a> has equivalent <code>pushTestReportToHub()</code>.</p>
 
       <h2>Runtime flow</h2>
       <div class="diagram">await test_suite(name, config)

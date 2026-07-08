@@ -65,12 +65,21 @@ class DbToApiConfig(SnaplineOptions):
     inputFromDb: bool | None
 
 
+class PublishAndPollConfig(SnaplineOptions):
+    publish: dict[str, Any]
+    poll: dict[str, Any]
+    pollOptions: dict[str, int] | None
+    expectedFile: str | None
+    expected: Any | None
+
+
 class TestSuiteConfig(dict):
     auth: AuthAdapter | None
     api: ApiFileTestConfig | None
     dbComparison: DbComparisonConfig | None
     apiToDb: ApiToDbConfig | None
     dbToApi: DbToApiConfig | None
+    publishAndPoll: PublishAndPollConfig | None
     baseUrl: str | None
     fetchImpl: Any | None
 
