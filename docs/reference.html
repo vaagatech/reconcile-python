@@ -73,7 +73,31 @@ class AppDb(DbConnectionLike):
     async def query(self, sql: str, params: dict | None = None) -> list[dict]:
         # your pg/mysql driver here
         return rows</code></pre>
-      <p>Demos use <code>snapline.demo_shared</code> for SQLite and in-memory stubs (<code>create_sqlite_connection</code>, <code>seed_db</code>, <code>db.postgres/mysql/sqlite</code>). See <code>packages/snapline_core/examples/in_memory_db.py</code> for a minimal stub you can copy.</p>
+      <p>Demos use <code>snapline.demo_shared</code> for SQLite and in-memory stubs. See <code>packages/snapline_core/examples/in_memory_db.py</code> for a minimal stub you can copy.</p>
+
+      <h2>Queue &amp; async polling</h2>
+      <table>
+        <thead><tr><th>Function</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>await run_publish_and_poll(config)</code></td><td>Publish message, poll async result, compare</td></tr>
+          <tr><td><code>create_db_async_result_resolver(config)</code></td><td>Poll SQL until rows ready</td></tr>
+          <tr><td><code>create_file_async_result_resolver(config)</code></td><td>Poll JSON file on disk</td></tr>
+          <tr><td><code>wait_for_result(check, ...)</code></td><td>Generic poll helper</td></tr>
+        </tbody>
+      </table>
+      <pre><code>from snapline.messaging_adapters import messaging
+from snapline.core import test_suite
+
+queue = messaging.memory()
+publisher = queue["publisher"]
+
+await test_suite("Order pipeline", {
+    "publishAndPoll": {
+        "publish": {"publisher": publisher, "topic": "orders.request", "payload": {"orderId": "ORD-1"}},
+        "poll": {"db": {"db": app_db, "query": "SELECT status FROM orders WHERE correlationId = :correlationId"}},
+        "expected": {"status": "PROCESSED"},
+    },
+})</code></pre>
 
       <h2>Warehouse comparison</h2>
       <pre><code>from snapline.core import run_warehouse_comparison, nosql, create_stream_report_writer

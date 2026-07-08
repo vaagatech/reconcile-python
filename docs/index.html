@@ -43,7 +43,8 @@
         <div class="badges">
           <span class="badge">Python 3.10+</span>
           <span class="badge">REST · GraphQL · SOAP</span>
-          <span class="badge">Postgres/MySQL · NoSQL (bring your own driver)</span>
+          <span class="badge">SQL · NoSQL · Queues</span>
+          <span class="badge">Kafka (optional)</span>
           <span class="badge">MIT License</span>
         </div>
       </header>
@@ -82,10 +83,17 @@
           <h3>Fixture cases</h3>
           <p>Run many pass/fail scenarios from <code>fixtures/cases/</code> with minimal per-case JSON.</p>
         </div>
+        <div class="card">
+          <h3>Queue → poll</h3>
+          <p>Publish to a message queue, then poll SQL or the filesystem for async results.</p>
+        </div>
       </div>
 
       <h2>Install</h2>
-      <pre><code>pip install snapline-core</code></pre>
+      <pre><code>pip install snapline-core
+
+# Optional — messaging queues:
+pip install snapline-messaging-adapters</code></pre>
       <p>From source (monorepo):</p>
       <pre><code>cd snapline-python
 uv sync

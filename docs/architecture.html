@@ -41,18 +41,18 @@
       <h2>Package layers</h2>
       <div class="diagram">┌─────────────────────────────────────────────────────────────┐
 │                    snapline-core (entry point)                 │
-│  test_suite · fixture runners · DB/NoSQL · reporting           │
-└───────────────┬─────────────────────┬────────────────────────┘
-                │                     │
-    ┌───────────▼──────────┐  ┌───────▼──────────────────────┐
-    │ snapline-engine      │  │ snapline-api-adapters        │
-    │ snapline · compare   │  │ REST · GraphQL · SOAP        │
-    └──────────────────────┘  └───────────┬──────────────────┘
-                                          │
-                              ┌───────────▼──────────────────┐
-                              │ snapline-auth-adapters       │
-                              │ OAuth2 · OpenID · Basic      │
-                              └──────────────────────────────┘</div>
+│  test_suite · fixture runners · DB/NoSQL · publishAndPoll     │
+└───────┬─────────────────┬───────────────────┬───────────────┘
+        │                 │                   │
+┌───────▼────────┐ ┌──────▼──────────┐ ┌──────▼────────────────┐
+│ snapline-engine│ │ api-adapters    │ │ messaging-adapters      │
+│ compare pipeline│ │ REST·GraphQL·SOAP│ │ in-memory queues       │
+└────────────────┘ └────────┬────────┘ └─────────────────────────┘
+                              │
+                    ┌─────────▼──────────┐
+                    │ auth-adapters      │
+                    │ OAuth2·OpenID·Basic│
+                    └────────────────────┘</div>
 
       <table>
         <thead>
@@ -63,6 +63,7 @@
           <tr><td><code>snapline-engine</code></td><td><code>snapline.engine</code></td><td><code>@vaagatech/snapline-engine</code></td></tr>
           <tr><td><code>snapline-api-adapters</code></td><td><code>snapline.api_adapters</code></td><td><code>@vaagatech/snapline-api-adapters</code></td></tr>
           <tr><td><code>snapline-auth-adapters</code></td><td><code>snapline.auth_adapters</code></td><td><code>@vaagatech/snapline-auth-adapters</code></td></tr>
+          <tr><td><code>snapline-messaging-adapters</code></td><td><code>snapline.messaging_adapters</code></td><td><code>@vaagatech/snapline-messaging-adapters</code></td></tr>
           <tr><td><code>snapline-demo-shared</code></td><td><code>snapline.demo_shared</code></td><td><code>@vaagatech/snapline-demo-shared</code></td></tr>
         </tbody>
       </table>
@@ -89,7 +90,8 @@
   ├─ api                        execute_api → snapline vs expectedFile
   ├─ dbComparison               fetch rows → snapline
   ├─ apiToDb                    execute_api → DB row → snapline
-  └─ dbToApi                    DB row → execute_api → snapline</div>
+  ├─ dbToApi                    DB row → execute_api → snapline
+  └─ publishAndPoll             publish queue → poll DB / file / topic → snapline</div>
 
       <h2>Repository layout</h2>
       <pre><code>snapline-python/
@@ -97,6 +99,7 @@
 │   ├── snapline_engine/
 │   ├── snapline_api_adapters/
 │   ├── snapline_auth_adapters/
+│   ├── snapline_messaging_adapters/
 │   └── snapline_core/
 ├── demo/
 │   ├── shared/           snapline.demo_shared (mock server + SQLite)

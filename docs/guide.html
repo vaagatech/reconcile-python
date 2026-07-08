@@ -46,6 +46,7 @@
           <tr><td>DB vs DB</td><td><code>dbComparison</code></td></tr>
           <tr><td>API vs DB row</td><td><code>apiToDb</code></td></tr>
           <tr><td>DB row vs API</td><td><code>dbToApi</code></td></tr>
+          <tr><td>Queue → async result</td><td><code>publishAndPoll</code></td></tr>
         </tbody>
       </table>
 
@@ -170,6 +171,19 @@ await run_warehouse_comparison({
     }],
     "chunkSize": 50,
     "report": {"outputPath": "./reports/warehouse.jsonl", "format": "jsonl"},
+})</code></pre>
+
+      <h2>Queue → poll (async pipelines)</h2>
+      <p>Install <code>snapline-messaging-adapters</code> for in-memory or custom queue publishers. Use <code>publishAndPoll</code> to wait for results in SQL or on disk:</p>
+      <pre><code>from snapline.messaging_adapters import messaging
+from snapline.core import run_publish_and_poll
+
+queue = messaging.memory()
+
+result = await run_publish_and_poll({
+    "publish": {"publisher": queue["publisher"], "topic": "jobs.submit", "payload": {"jobId": "JOB-42"}},
+    "poll": {"file": {"directory": "/var/results"}},
+    "expected": {"jobId": "JOB-42", "status": "COMPLETE"},
 })</code></pre>
 
       <h2>Fixture cases</h2>

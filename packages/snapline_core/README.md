@@ -75,6 +75,25 @@ class AppDb(DbConnectionLike):
 
 Demos use `snapline.demo_shared` for SQLite and stub postgres/mysql (`create_sqlite_connection`, `seed_db`).
 
+## Queue → poll (`publishAndPoll`)
+
+Install `snapline-messaging-adapters` for queue publishers. Publish a message, then poll SQL or the filesystem for async results:
+
+```python
+from snapline.messaging_adapters import messaging
+from snapline.core import run_publish_and_poll
+
+queue = messaging.memory()
+
+result = await run_publish_and_poll({
+    "publish": {"publisher": queue["publisher"], "topic": "orders.request", "payload": {"orderId": "ORD-1"}},
+    "poll": {"db": {"db": app_db, "query": "SELECT * FROM orders WHERE correlationId = :correlationId"}},
+    "expected": {"orderId": "ORD-1", "status": "PROCESSED"},
+})
+```
+
+See `examples/publish_and_poll_file.py` and the [Node.js docs](https://vaagatech.github.io/snapline/guide.html) for Kafka setup.
+
 ## Warehouse comparison (`run_warehouse_comparison`)
 
 Chunked SQL → document-store consistency for data-warehouse ETL (26–30 tables in production). Streams a JSONL report so large datasets never load fully into memory.

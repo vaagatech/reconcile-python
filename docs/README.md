@@ -12,7 +12,18 @@ Documentation lives in the `docs/` folder and deploys automatically via `.github
 
 https://vaagatech.github.io/snapline-python/
 
-Related: [Node.js edition](https://vaagatech.github.io/snapline/) · [Snapline Hub](https://github.com/vaagatech/snapline-hub) (optional reporting UI)
+## Site structure
+
+| Page | Contents |
+|------|----------|
+| [index.html](index.html) | Overview, install, reconciliation pipeline |
+| [architecture.html](architecture.html) | Package layers including **messaging-adapters** |
+| [guide.html](guide.html) | End-to-end workflow including **queue → poll** |
+| [reference.html](reference.html) | API reference including `publishAndPoll` |
+
+Styling: [assets/style.css](assets/style.css) — Inter font, sticky sidebar, responsive layout.
+
+Related: [Node.js edition](https://vaagatech.github.io/snapline/) · [Snapline Hub](https://vaagatech.github.io/snapline-hub/)
 
 ## Local preview
 
