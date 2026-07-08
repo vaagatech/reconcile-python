@@ -4,16 +4,16 @@ build-backend = "hatchling.build"
 
 [project]
 name = "snapline-core"
-version = "0.2.3"
+version = "0.2.4"
 description = "Declarative snapshot and reconciliation testing — Snapline core"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
 authors = [{ name = "VaagaTech", email = "info@vaagatech.com" }]
 dependencies = [
-    "snapline-engine==0.2.3",
-    "snapline-api-adapters==0.2.3",
-    "snapline-auth-adapters==0.2.3",
+    "snapline-engine==0.2.4",
+    "snapline-api-adapters==0.2.4",
+    "snapline-auth-adapters==0.2.4",
 ]
 
 [project.urls]
