@@ -5,6 +5,7 @@ import importlib.util
 import sys
 import time
 from pathlib import Path
+from typing import Any
 
 from snapline.core import build_report, push_test_report_to_hub, resolve_hub_config, resolve_report_config, write_test_report
 from snapline.demo_shared import (
@@ -38,6 +39,62 @@ def _load_scenario(scenario_id: str):
     return module.scenario
 
 
+def _scenario_report_path(scenario_id: str, report_format: str) -> str:
+    extension = "txt" if report_format == "text" else report_format
+    return f"./reports/scenarios/{scenario_id}.{extension}"
+
+
+def _publish_scenario_reports(
+    scenario_id: str,
+    result: dict[str, Any],
+    *,
+    duration_ms: int,
+    base_url: str,
+    report_config: dict[str, Any] | None,
+    hub_config: dict[str, Any] | None,
+) -> None:
+    if report_config:
+        try:
+            per_scenario_config = {
+                **report_config,
+                "outputPath": _scenario_report_path(scenario_id, report_config["format"]),
+            }
+            report_path = write_test_report(
+                [result],
+                per_scenario_config,
+                {
+                    "durationMs": duration_ms,
+                    "environment": {"baseUrl": base_url, "scenarioId": scenario_id},
+                },
+            )
+            print(f"  [file] {scenario_id} → {report_path}")
+        except Exception as exc:
+            print(f"  [file] {scenario_id} failed: {exc}")
+
+    if hub_config:
+        try:
+            report = build_report(
+                [result],
+                {
+                    "durationMs": duration_ms,
+                    "environment": {"baseUrl": base_url, "scenarioId": scenario_id},
+                },
+            )
+            tags = list({*(hub_config.get("tags") or []), "python", "demo", scenario_id})
+            hub_result = push_test_report_to_hub(
+                report,
+                config={
+                    **hub_config,
+                    "label": result.get("name", scenario_id),
+                    "project": scenario_id,
+                    "tags": tags,
+                },
+            )
+            print(f"  [hub]  {scenario_id} → {hub_result['url']}")
+        except Exception as exc:
+            print(f"  [hub]  {scenario_id} push failed: {exc}")
+
+
 async def main() -> int:
     validate_scenario_registry(SCENARIOS_DIR)
 
@@ -63,61 +120,52 @@ async def main() -> int:
     try:
         results = []
         for scenario_id in SCENARIO_ORDER:
+            scenario_start = time.time() * 1000
+            print(f"\n▶ {scenario_id}")
             scenario = _load_scenario(scenario_id)
             try:
-                results.append(await scenario.run(context))
+                result = await scenario.run(context)
             except Exception as exc:
-                results.append(
-                    {
-                        "name": scenario.name,
-                        "passed": False,
-                        "results": [{"step": "run", "passed": False, "message": str(exc)}],
-                    }
-                )
+                result = {
+                    "name": scenario.name,
+                    "passed": False,
+                    "results": [{"step": "run", "passed": False, "message": str(exc)}],
+                }
+            results.append(result)
+            _publish_scenario_reports(
+                scenario_id,
+                result,
+                duration_ms=int(time.time() * 1000 - scenario_start),
+                base_url=server_handle.base_url,
+                report_config=report_config,
+                hub_config=hub_config,
+            )
 
         duration_ms = int(time.time() * 1000 - started_at)
         passed = sum(1 for result in results if result["passed"])
         failed = len(results) - passed
 
-        print("───────────────────────────────────────────────────────")
+        print("\n───────────────────────────────────────────────────────")
         print(f"  Summary: {passed} passed, {failed} failed ({duration_ms}ms)")
         print("───────────────────────────────────────────────────────")
 
         if report_config:
-            report_path = write_test_report(
-                results,
-                report_config,
-                {
-                    "durationMs": duration_ms,
-                    "environment": {
-                        "baseUrl": server_handle.base_url,
-                        "reportFormat": report_config["format"],
+            try:
+                report_path = write_test_report(
+                    results,
+                    report_config,
+                    {
+                        "durationMs": duration_ms,
+                        "environment": {
+                            "baseUrl": server_handle.base_url,
+                            "reportFormat": report_config["format"],
+                            "suiteName": "full-demo",
+                        },
                     },
-                },
-            )
-            print(f"\nReport written to {report_path}")
-
-        if hub_config:
-            report = build_report(
-                results,
-                {
-                    "durationMs": duration_ms,
-                    "environment": {
-                        "baseUrl": server_handle.base_url,
-                        "suiteName": "full-demo",
-                    },
-                },
-            )
-            hub_result = push_test_report_to_hub(
-                report,
-                config={
-                    **hub_config,
-                    "label": hub_config.get("label", "Full integration demo (Python)"),
-                    "project": hub_config.get("project", "snapline-demo"),
-                    "tags": hub_config.get("tags", ["python", "demo"]),
-                },
-            )
-            print(f"\nReport pushed to Snapline Hub: {hub_result['url']}")
+                )
+                print(f"\n[file] Full demo summary → {report_path}")
+            except Exception as exc:
+                print(f"[file] Full demo summary failed: {exc}")
 
         return 1 if failed > 0 else 0
     finally:
