@@ -13,8 +13,17 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install -e snapline-python/packages/snapline_engine -e snapline-python/packages/snapline_api_adapters -e snapline-python/packages/snapline_auth_adapters -e snapline-python/packages/snapline_core -e snapline-python/demo/shared pytest
-      - run: pytest snapline-python/tests -q
-        working-directory: .
-      - run: python snapline-python/demo/run_all/run_all.py
-        working-directory: .
+      - name: Install packages
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e packages/snapline_engine \
+            -e packages/snapline_api_adapters \
+            -e packages/snapline_auth_adapters \
+            -e packages/snapline_messaging_adapters \
+            -e packages/snapline_core \
+            -e demo/shared \
+            pytest
+      - name: Run tests
+        run: pytest tests -q
+      - name: Run demo
+        run: python demo/run_all/run_all.py
