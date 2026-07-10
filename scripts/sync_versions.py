@@ -11,6 +11,7 @@ PACKAGES = [
     ROOT / "packages" / "snapline_engine",
     ROOT / "packages" / "snapline_api_adapters",
     ROOT / "packages" / "snapline_auth_adapters",
+    ROOT / "packages" / "snapline_messaging_adapters",
     ROOT / "packages" / "snapline_core",
     ROOT / "demo" / "shared",
 ]
@@ -19,6 +20,7 @@ INTERNAL_PACKAGE_NAMES = (
     "snapline-engine",
     "snapline-api-adapters",
     "snapline-auth-adapters",
+    "snapline-messaging-adapters",
     "snapline-core",
     "snapline-demo-shared",
 )
@@ -68,27 +70,35 @@ def main() -> int:
     parser.add_argument("--version")
     args = parser.parse_args()
 
-    versions = {_read_version(ROOT_PYPROJECT): ROOT_PYPROJECT}
-    for package in PACKAGES:
-        versions[_read_version(package / "pyproject.toml")] = package / "pyproject.toml"
+    versions: dict[str, list[Path]] = {}
+    for path in [ROOT_PYPROJECT, *[package / "pyproject.toml" for package in PACKAGES]]:
+        if not path.exists():
+            continue
+        version = _read_version(path)
+        versions.setdefault(version, []).append(path)
 
-    unique_versions = set(versions.keys())
-    if len(unique_versions) != 1:
+    if len(versions) != 1:
         print("Version mismatch:")
-        for version, path in versions.items():
-            print(f"  {version}: {path}")
+        for version, paths in sorted(versions.items()):
+            for path in paths:
+                print(f"  {version}: {path.relative_to(ROOT)}")
         return 1
 
-    current = next(iter(unique_versions))
+    current = next(iter(versions))
 
     if args.check:
+        expected = args.version or current
+        if current != expected:
+            print(f"Expected {expected}, found {current}")
+            return 1
         print(f"All package versions match: {current}")
         return 0
 
     target = _bump_patch(current) if args.bump_patch else args.version or current
 
     for path in [ROOT_PYPROJECT, *[package / "pyproject.toml" for package in PACKAGES]]:
-        _write_version(path, target)
+        if path.exists():
+            _write_version(path, target)
 
     print(f"Synced versions to {target}")
     return 0
