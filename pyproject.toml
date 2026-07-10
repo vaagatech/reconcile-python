@@ -40,6 +40,18 @@ extraPaths = [
 [tool.uv]
 package = false
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+pythonpath = [
+  "packages/snapline_core",
+  "packages/snapline_engine",
+  "packages/snapline_api_adapters",
+  "packages/snapline_auth_adapters",
+  "packages/snapline_messaging_adapters",
+  "demo/shared",
+]
+
 [project.scripts]
 snapline-demo = "run_demo:main"
 
